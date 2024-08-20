@@ -32,17 +32,22 @@ func NewProvinceUseCase(logger *zap.Logger, db *gorm.DB, provinceRepository *rep
 }
 
 func (uc *ProvinceUseCase) List(ctx context.Context, request *model.ListProvinceRequest) ([]model.ProvinceResponse, error) {
+	logger := uc.Log
+	if rid, ok := ctx.Value("requestid").(string); ok {
+		logger = logger.With(zap.String("requestid", rid))
+	}
+
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
 	provinces, err := uc.ProvinceRepository.FindAll(tx)
 	if err != nil {
-		uc.Log.Warn(err.Error(), zap.String("requestid", ctx.Value("requestid").(string)))
+		logger.Warn(err.Error())
 		return nil, fiber.ErrInternalServerError
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		uc.Log.Warn(err.Error(), zap.String("requestid", ctx.Value("requestid").(string)), zap.String("error", "failed to commit transaction"))
+		logger.Warn(err.Error(), zap.String("error", "failed to commit transaction"))
 		return nil, fiber.ErrInternalServerError
 	}
 
@@ -55,6 +60,11 @@ func (uc *ProvinceUseCase) List(ctx context.Context, request *model.ListProvince
 }
 
 func (uc *ProvinceUseCase) Get(ctx context.Context, request *model.GetProvinceRequest) (*model.ProvinceResponse, error) {
+	logger := uc.Log
+	if rid, ok := ctx.Value("requestid").(string); ok {
+		logger = logger.With(zap.String("requestid", rid))
+	}
+
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -62,12 +72,12 @@ func (uc *ProvinceUseCase) Get(ctx context.Context, request *model.GetProvinceRe
 	ID := request.ID
 	if err := uc.ProvinceRepository.FindById(tx, province, ID); err != nil {
 		message := fmt.Sprintf("failed to get province with ID: %d", ID)
-		uc.Log.Warn(err.Error(), zap.String("requestid", ctx.Value("requestid").(string)), zap.String("error", message))
+		logger.Warn(err.Error(), zap.String("error", message))
 		return nil, fiber.ErrNotFound
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		uc.Log.Warn(err.Error(), zap.String("requestid", ctx.Value("requestid").(string)), zap.String("error", "failed to commit transaction"))
+		logger.Warn(err.Error(), zap.String("error", "failed to commit transaction"))
 		return nil, fiber.ErrInternalServerError
 	}
 
