@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
@@ -68,5 +69,5 @@ type zapLogWriter struct {
 }
 
 func (l *zapLogWriter) Printf(message string, args ...interface{}) {
-	l.Logger.Debug(message, zap.Field{Interface: args})
+	l.Logger.Debug(fmt.Sprintf(fmt.Sprintf("%v", message[3:]), args[1:]...))
 }
