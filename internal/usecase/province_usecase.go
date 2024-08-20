@@ -31,6 +31,29 @@ func NewProvinceUseCase(logger *zap.Logger, db *gorm.DB, provinceRepository *rep
 	}
 }
 
+func (uc *ProvinceUseCase) List(ctx context.Context, request *model.ListProvinceRequest) ([]model.ProvinceResponse, error) {
+	tx := uc.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	provinces, err := uc.ProvinceRepository.FindAll(tx)
+	if err != nil {
+		uc.Log.Warn(err.Error())
+		return nil, fiber.ErrInternalServerError
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		uc.Log.Warn(err.Error(), zap.String("error", "failed to commit transaction"))
+		return nil, fiber.ErrInternalServerError
+	}
+
+	responses := make([]model.ProvinceResponse, len(provinces))
+	for i, province := range provinces {
+		responses[i] = *mapper.ProvinceToResponse(&province)
+	}
+
+	return responses, nil
+}
+
 func (uc *ProvinceUseCase) Get(ctx context.Context, request *model.GetProvinceRequest) (*model.ProvinceResponse, error) {
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()

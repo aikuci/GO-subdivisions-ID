@@ -22,6 +22,21 @@ func NewProvinceController(log *zap.Logger, useCase *usecase.ProvinceUseCase) *P
 	}
 }
 
+func (c *ProvinceController) List(ctx *fiber.Ctx) error {
+	request := &model.ListProvinceRequest{}
+
+	responses, err := c.UseCase.List(ctx.UserContext(), request)
+	if e, ok := err.(*fiber.Error); ok {
+		c.Log.Warn(err.Error())
+		return &fiber.Error{
+			Code:    e.Code,
+			Message: err.Error(),
+		}
+	}
+
+	return ctx.JSON(model.WebResponse[[]model.ProvinceResponse]{Data: responses})
+}
+
 func (c *ProvinceController) Get(ctx *fiber.Ctx) error {
 	ID, err := ctx.ParamsInt("ID")
 	if err != nil {
