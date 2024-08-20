@@ -1,8 +1,6 @@
 package http
 
 import (
-	"fmt"
-
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
@@ -42,17 +40,9 @@ func (c *ProvinceController) Get(ctx *fiber.Ctx) error {
 	userContext := requestid.SetContext(ctx.UserContext(), ctx)
 	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
 
-	ID, err := ctx.ParamsInt("ID")
-	if err != nil {
-		message := fmt.Sprintf("failed to parse province ID: %v", ctx.Params("ID"))
-		logger.Warn(err.Error(), zap.String("error", message))
-		return &fiber.Error{
-			Code:    fiber.ErrBadRequest.Code,
-			Message: message,
-		}
-	}
+	id, _ := ctx.ParamsInt("id")
 	request := &model.GetProvinceRequest{
-		ID: ID,
+		ID: id,
 	}
 
 	response, err := c.UseCase.Get(userContext, request)

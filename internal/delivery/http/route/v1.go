@@ -10,5 +10,5 @@ func (c *RouteConfig) SetupV1Route() {
 	})
 
 	v1.Get("/provinces", c.ProvinceController.List)
-	v1.Get("/provinces/:ID", c.ProvinceController.Get)
+	v1.Get("/provinces/:id<int>", c.ProvinceController.Get)
 }
