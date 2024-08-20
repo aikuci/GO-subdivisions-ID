@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
@@ -32,10 +33,7 @@ func NewProvinceUseCase(logger *zap.Logger, db *gorm.DB, provinceRepository *rep
 }
 
 func (uc *ProvinceUseCase) List(ctx context.Context, request *model.ListProvinceRequest) ([]model.ProvinceResponse, error) {
-	logger := uc.Log
-	if rid, ok := ctx.Value("requestid").(string); ok {
-		logger = logger.With(zap.String("requestid", rid))
-	}
+	logger := uc.Log.With(zap.String(string("requestid"), requestid.FromContext(ctx)))
 
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
@@ -60,10 +58,7 @@ func (uc *ProvinceUseCase) List(ctx context.Context, request *model.ListProvince
 }
 
 func (uc *ProvinceUseCase) Get(ctx context.Context, request *model.GetProvinceRequest) (*model.ProvinceResponse, error) {
-	logger := uc.Log
-	if rid, ok := ctx.Value("requestid").(string); ok {
-		logger = logger.With(zap.String("requestid", rid))
-	}
+	logger := uc.Log.With(zap.String(string("requestid"), requestid.FromContext(ctx)))
 
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()

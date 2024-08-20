@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 
+	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
 
@@ -23,15 +24,12 @@ func NewProvinceController(log *zap.Logger, useCase *usecase.ProvinceUseCase) *P
 }
 
 func (c *ProvinceController) List(ctx *fiber.Ctx) error {
-	logger := c.Log
-	if rid, ok := ctx.Locals("requestid").(string); ok {
-		logger = logger.With(zap.String("requestid", rid))
-	}
+	userContext := requestid.SetContext(ctx.UserContext(), ctx)
+	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
 
 	request := &model.ListProvinceRequest{}
 
-	ctx.SetUserContext(ctx.Context())
-	responses, err := c.UseCase.List(ctx.UserContext(), request)
+	responses, err := c.UseCase.List(userContext, request)
 	if e, ok := err.(*fiber.Error); ok {
 		logger.Warn(err.Error())
 		return &fiber.Error{
@@ -44,10 +42,8 @@ func (c *ProvinceController) List(ctx *fiber.Ctx) error {
 }
 
 func (c *ProvinceController) Get(ctx *fiber.Ctx) error {
-	logger := c.Log
-	if rid, ok := ctx.Locals("requestid").(string); ok {
-		logger = logger.With(zap.String("requestid", rid))
-	}
+	userContext := requestid.SetContext(ctx.UserContext(), ctx)
+	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
 
 	ID, err := ctx.ParamsInt("ID")
 	if err != nil {
@@ -63,8 +59,7 @@ func (c *ProvinceController) Get(ctx *fiber.Ctx) error {
 		ID: ID,
 	}
 
-	ctx.SetUserContext(ctx.Context())
-	response, err := c.UseCase.Get(ctx.UserContext(), request)
+	response, err := c.UseCase.Get(userContext, request)
 	if e, ok := err.(*fiber.Error); ok {
 		logger.Warn(err.Error())
 		return &fiber.Error{
