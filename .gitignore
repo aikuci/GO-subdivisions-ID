@@ -19,6 +19,7 @@
 
 # Database Files (especially SQLite)
 *.db
+*.sqlite
 
 # Env Files
 .env

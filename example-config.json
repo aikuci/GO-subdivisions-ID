@@ -18,10 +18,10 @@
     },
     "type": "sqlite",
     "sqlite": {
-      "file": "db/test.db"
+      "file": "db/test.sqlite"
     },
     "pg": {
-      "url": "postgresql://postgres:postgres@localhost:5432/playground?sslmode=disable"
+      "url": "postgresql://postgres:postgres@localhost:5432"
     }
   }
 }
