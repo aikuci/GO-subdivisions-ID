@@ -69,5 +69,5 @@ type zapLogWriter struct {
 }
 
 func (l *zapLogWriter) Printf(message string, args ...interface{}) {
-	l.Logger.Debug(fmt.Sprintf(fmt.Sprintf("%v", message[3:]), args[1:]...))
+	l.Logger.Debug(fmt.Sprintf(message, args...))
 }
