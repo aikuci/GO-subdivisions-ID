@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
@@ -66,9 +67,13 @@ func (uc *ProvinceUseCase) Get(ctx context.Context, request *model.GetProvinceRe
 	province := new(entity.Province)
 	ID := request.ID
 	if err := uc.ProvinceRepository.FindById(tx, province, ID); err != nil {
-		message := fmt.Sprintf("failed to get province with ID: %d", ID)
-		logger.Warn(err.Error(), zap.String("error", message))
-		return nil, fiber.ErrNotFound
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Warn(err.Error(), zap.String("error", fmt.Sprintf("failed to get province with ID: %d", ID)))
+			return nil, fiber.ErrNotFound
+		}
+
+		logger.Warn(err.Error())
+		return nil, fiber.ErrInternalServerError
 	}
 
 	if err := tx.Commit().Error; err != nil {

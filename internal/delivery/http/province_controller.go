@@ -30,12 +30,9 @@ func (c *ProvinceController) List(ctx *fiber.Ctx) error {
 	request := &model.ListProvinceRequest{}
 
 	responses, err := c.UseCase.List(userContext, request)
-	if e, ok := err.(*fiber.Error); ok {
+	if err != nil {
 		logger.Warn(err.Error())
-		return &fiber.Error{
-			Code:    e.Code,
-			Message: err.Error(),
-		}
+		return err
 	}
 
 	return ctx.JSON(model.WebResponse[[]model.ProvinceResponse]{Data: responses})
@@ -47,25 +44,21 @@ func (c *ProvinceController) Get(ctx *fiber.Ctx) error {
 
 	ID, err := ctx.ParamsInt("ID")
 	if err != nil {
-		message := fmt.Sprintf("failed to parse province ID %v", ID)
+		message := fmt.Sprintf("failed to parse province ID: %v", ctx.Params("ID"))
 		logger.Warn(err.Error(), zap.String("error", message))
 		return &fiber.Error{
 			Code:    fiber.ErrBadRequest.Code,
 			Message: message,
 		}
 	}
-
 	request := &model.GetProvinceRequest{
 		ID: ID,
 	}
 
 	response, err := c.UseCase.Get(userContext, request)
-	if e, ok := err.(*fiber.Error); ok {
+	if err != nil {
 		logger.Warn(err.Error())
-		return &fiber.Error{
-			Code:    e.Code,
-			Message: err.Error(),
-		}
+		return err
 	}
 
 	return ctx.JSON(model.WebResponse[*model.ProvinceResponse]{Data: response})
