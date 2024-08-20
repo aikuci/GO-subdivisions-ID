@@ -1,16 +1,18 @@
 package route
 
 import (
-	"gorm.io/gorm"
+	"github.com/aikuci/go-subdivisions-id/internal/delivery/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
+	"gorm.io/gorm"
 )
 
 type RouteConfig struct {
-	App *fiber.App
-	DB  *gorm.DB
+	App                *fiber.App
+	DB                 *gorm.DB
+	ProvinceController *http.ProvinceController
 }
 
 func (c *RouteConfig) Setup() {
