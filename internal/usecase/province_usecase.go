@@ -37,12 +37,12 @@ func (uc *ProvinceUseCase) List(ctx context.Context, request *model.ListProvince
 
 	provinces, err := uc.ProvinceRepository.FindAll(tx)
 	if err != nil {
-		uc.Log.Warn(err.Error())
+		uc.Log.Warn(err.Error(), zap.String("requestid", ctx.Value("requestid").(string)))
 		return nil, fiber.ErrInternalServerError
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		uc.Log.Warn(err.Error(), zap.String("error", "failed to commit transaction"))
+		uc.Log.Warn(err.Error(), zap.String("requestid", ctx.Value("requestid").(string)), zap.String("error", "failed to commit transaction"))
 		return nil, fiber.ErrInternalServerError
 	}
 
@@ -62,12 +62,12 @@ func (uc *ProvinceUseCase) Get(ctx context.Context, request *model.GetProvinceRe
 	ID := request.ID
 	if err := uc.ProvinceRepository.FindById(tx, province, ID); err != nil {
 		message := fmt.Sprintf("failed to get province with ID: %d", ID)
-		uc.Log.Warn(err.Error(), zap.String("error", message))
+		uc.Log.Warn(err.Error(), zap.String("requestid", ctx.Value("requestid").(string)), zap.String("error", message))
 		return nil, fiber.ErrNotFound
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		uc.Log.Warn(err.Error(), zap.String("error", "failed to commit transaction"))
+		uc.Log.Warn(err.Error(), zap.String("requestid", ctx.Value("requestid").(string)), zap.String("error", "failed to commit transaction"))
 		return nil, fiber.ErrInternalServerError
 	}
 
