@@ -18,18 +18,18 @@ import (
 )
 
 type ProvinceUseCase struct {
-	Log                *zap.Logger
-	Validate           *validator.Validate
-	DB                 *gorm.DB
-	ProvinceRepository *repository.ProvinceRepository
+	Log        *zap.Logger
+	Validate   *validator.Validate
+	DB         *gorm.DB
+	Repository repository.CrudRepositorier[entity.Province]
 }
 
-func NewProvinceUseCase(logger *zap.Logger, db *gorm.DB, provinceRepository *repository.ProvinceRepository,
+func NewProvinceUseCase(logger *zap.Logger, db *gorm.DB, repository repository.CrudRepositorier[entity.Province],
 ) *ProvinceUseCase {
 	return &ProvinceUseCase{
-		Log:                logger,
-		DB:                 db,
-		ProvinceRepository: provinceRepository,
+		Log:        logger,
+		DB:         db,
+		Repository: repository,
 	}
 }
 
@@ -39,7 +39,7 @@ func (uc *ProvinceUseCase) List(ctx context.Context, request *model.ListRequest)
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	provinces, err := uc.ProvinceRepository.FindAll(tx)
+	data, err := uc.Repository.FindAll(tx)
 	if err != nil {
 		logger.Warn(err.Error())
 		return nil, fiber.ErrInternalServerError
@@ -50,8 +50,8 @@ func (uc *ProvinceUseCase) List(ctx context.Context, request *model.ListRequest)
 		return nil, fiber.ErrInternalServerError
 	}
 
-	responses := make([]model.ProvinceResponse, len(provinces))
-	for i, province := range provinces {
+	responses := make([]model.ProvinceResponse, len(data))
+	for i, province := range data {
 		responses[i] = *mapper.ProvinceToResponse(&province)
 	}
 
@@ -66,7 +66,7 @@ func (uc *ProvinceUseCase) GetByID(ctx context.Context, request *model.GetByIDRe
 
 	province := new(entity.Province)
 	ID := request.ID
-	if err := uc.ProvinceRepository.FindById(tx, province, ID); err != nil {
+	if err := uc.Repository.FindById(tx, province, ID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logger.Warn(err.Error(), zap.String("errorMessage", fmt.Sprintf("failed to get province with ID: %d", ID)))
 			return nil, fiber.ErrNotFound

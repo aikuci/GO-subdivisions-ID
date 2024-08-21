@@ -13,8 +13,7 @@ import (
 type RouteConfig struct {
 	App                *fiber.App
 	DB                 *gorm.DB
-	CrudController     *http.CrudController[model.ProvinceResponse]
-	ProvinceController *http.ProvinceController
+	ProvinceController *http.CrudController[model.ProvinceResponse]
 }
 
 func (c *RouteConfig) Setup() {
