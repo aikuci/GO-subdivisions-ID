@@ -29,12 +29,12 @@ type CrudUseCase[TEntity any, TModel any] struct {
 	Mapper     mapper.CruderMapper[TEntity, TModel]
 }
 
-func NewCrudUseCase[TEntity any, TModel any](logger *zap.Logger, db *gorm.DB, repository repository.CruderRepository[TEntity],
-) *CrudUseCase[TEntity, TModel] {
+func NewCrudUseCase[TEntity any, TModel any](logger *zap.Logger, db *gorm.DB, repository repository.CruderRepository[TEntity], mapper mapper.CruderMapper[TEntity, TModel]) *CrudUseCase[TEntity, TModel] {
 	return &CrudUseCase[TEntity, TModel]{
 		Log:        logger,
 		DB:         db,
 		Repository: repository,
+		Mapper:     mapper,
 	}
 }
 
