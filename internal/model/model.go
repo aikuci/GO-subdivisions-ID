@@ -1,5 +1,9 @@
 package model
 
+type BaseCollectionResponse struct {
+	ID int `json:"id"`
+}
+
 type WebResponse[T any] struct {
 	Data   T             `json:"data"`
 	Paging *PageMetadata `json:"paging,omitempty"`
