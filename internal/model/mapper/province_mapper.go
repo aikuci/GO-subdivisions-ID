@@ -9,16 +9,11 @@ type ProvinceMapper struct {
 	Entity entity.Province
 }
 
-func (m *ProvinceMapper) ModelToResponse(province *entity.Province) *model.ProvinceResponse {
-	return &model.ProvinceResponse{
-		BaseCollectionResponse: model.BaseCollectionResponse{ID: province.ID},
-		Code:                   province.Code,
-		Name:                   province.Name,
-		PostalCodes:            province.PostalCodes,
-	}
+func NewProvinceMapper() *ProvinceMapper {
+	return &ProvinceMapper{}
 }
 
-func ProvinceToResponse(province *entity.Province) *model.ProvinceResponse {
+func (m *ProvinceMapper) ModelToResponse(province *entity.Province) *model.ProvinceResponse {
 	return &model.ProvinceResponse{
 		BaseCollectionResponse: model.BaseCollectionResponse{ID: province.ID},
 		Code:                   province.Code,

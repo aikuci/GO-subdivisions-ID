@@ -4,6 +4,8 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http"
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/route"
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
+	"github.com/aikuci/go-subdivisions-id/internal/model"
+	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
 
@@ -27,7 +29,7 @@ func Bootstrap(config *BootstrapConfig) {
 	provinceRepository := repository.NewCrudRepository[entity.Province](config.Log)
 
 	// setup use cases
-	provinceUseCase := usecase.NewProvinceUseCase(config.Log, config.DB, provinceRepository)
+	provinceUseCase := usecase.NewCrudUseCase[entity.Province, model.ProvinceResponse](config.Log, config.DB, provinceRepository, mapper.NewProvinceMapper())
 
 	// setup controllers
 	provinceController := http.NewCrudController(config.Log, provinceUseCase)
