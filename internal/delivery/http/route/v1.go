@@ -9,6 +9,6 @@ func (c *RouteConfig) SetupV1Route() {
 		return c.SendString("PONG from V1")
 	})
 
-	v1.Get("/provinces", c.ProvinceController.List())
-	v1.Get("/provinces/:id<int>", c.ProvinceController.GetByID())
+	v1.Get("/provinces", c.ProvinceController.List)
+	v1.Get("/provinces/:id<int>", c.ProvinceController.GetByID)
 }

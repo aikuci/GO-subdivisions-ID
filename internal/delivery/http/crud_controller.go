@@ -21,39 +21,35 @@ func NewCrudController[T any](log *zap.Logger, useCase usecase.CruderUseCase[T])
 	}
 }
 
-func (c *CrudController[T]) List() fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		userContext := requestid.SetContext(ctx.UserContext(), ctx)
-		logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
+func (c *CrudController[T]) List(ctx *fiber.Ctx) error {
+	userContext := requestid.SetContext(ctx.UserContext(), ctx)
+	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
 
-		request := &model.ListRequest{}
+	request := &model.ListRequest{}
 
-		responses, err := c.UseCase.List(userContext, request)
-		if err != nil {
-			logger.Warn(err.Error())
-			return err
-		}
-
-		return ctx.JSON(model.WebResponse[[]T]{Data: responses})
+	responses, err := c.UseCase.List(userContext, request)
+	if err != nil {
+		logger.Warn(err.Error())
+		return err
 	}
+
+	return ctx.JSON(model.WebResponse[[]T]{Data: responses})
 }
 
-func (c *CrudController[T]) GetByID() fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		userContext := requestid.SetContext(ctx.UserContext(), ctx)
-		logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
+func (c *CrudController[T]) GetByID(ctx *fiber.Ctx) error {
+	userContext := requestid.SetContext(ctx.UserContext(), ctx)
+	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
 
-		id, _ := ctx.ParamsInt("id")
-		request := &model.GetByIDRequest{
-			ID: id,
-		}
-
-		response, err := c.UseCase.GetByID(userContext, request)
-		if err != nil {
-			logger.Warn(err.Error())
-			return err
-		}
-
-		return ctx.JSON(model.WebResponse[*T]{Data: response})
+	id, _ := ctx.ParamsInt("id")
+	request := &model.GetByIDRequest{
+		ID: id,
 	}
+
+	response, err := c.UseCase.GetByID(userContext, request)
+	if err != nil {
+		logger.Warn(err.Error())
+		return err
+	}
+
+	return ctx.JSON(model.WebResponse[*T]{Data: response})
 }
