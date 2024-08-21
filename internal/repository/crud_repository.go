@@ -7,7 +7,7 @@ import (
 
 type CruderRepository[T any] interface {
 	FindById(db *gorm.DB, entity *T, id any) error
-	FindAll(tx *gorm.DB) ([]T, error)
+	FindAll(db *gorm.DB) ([]T, error)
 }
 
 type CrudRepository[T any] struct {
