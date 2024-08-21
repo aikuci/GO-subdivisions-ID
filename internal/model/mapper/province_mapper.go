@@ -5,9 +5,7 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 )
 
-type ProvinceMapper struct {
-	Entity entity.Province
-}
+type ProvinceMapper struct{}
 
 func NewProvinceMapper() *ProvinceMapper {
 	return &ProvinceMapper{}
