@@ -2,6 +2,7 @@ package route
 
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http"
+	"github.com/aikuci/go-subdivisions-id/internal/model"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
@@ -12,6 +13,7 @@ import (
 type RouteConfig struct {
 	App                *fiber.App
 	DB                 *gorm.DB
+	CrudController     *http.CrudController[model.ProvinceResponse]
 	ProvinceController *http.ProvinceController
 }
 
