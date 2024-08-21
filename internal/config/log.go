@@ -1,9 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -17,7 +17,7 @@ func NewZapLog(config *viper.Viper) *zap.Logger {
 		return NewDevelopmentLogger()
 	}()
 	if err != nil {
-		log.Errorf("failed to initiate zap logger: %w", err)
+		panic(fmt.Errorf("failed to initiate zap logger: %w", err))
 	}
 
 	return logger
