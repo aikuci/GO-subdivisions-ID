@@ -8,10 +8,3 @@ type ProvinceResponse struct {
 	Name        string        `json:"name"`
 	PostalCodes pq.Int64Array `json:"postal_codes"`
 }
-
-type ListProvinceRequest struct {
-}
-
-type GetProvinceRequest struct {
-	ID int `json:"-" validate:"required"`
-}

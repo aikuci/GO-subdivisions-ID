@@ -17,3 +17,10 @@ type PageMetadata struct {
 	TotalItem int64 `json:"total_item"`
 	TotalPage int64 `json:"total_page"`
 }
+
+type ListRequest struct {
+}
+
+type GetByIDRequest struct {
+	ID int `json:"-" validate:"required"`
+}

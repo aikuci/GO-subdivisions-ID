@@ -25,7 +25,7 @@ func (c *ProvinceController) List(ctx *fiber.Ctx) error {
 	userContext := requestid.SetContext(ctx.UserContext(), ctx)
 	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
 
-	request := &model.ListProvinceRequest{}
+	request := &model.ListRequest{}
 
 	responses, err := c.UseCase.List(userContext, request)
 	if err != nil {
@@ -36,16 +36,16 @@ func (c *ProvinceController) List(ctx *fiber.Ctx) error {
 	return ctx.JSON(model.WebResponse[[]model.ProvinceResponse]{Data: responses})
 }
 
-func (c *ProvinceController) Get(ctx *fiber.Ctx) error {
+func (c *ProvinceController) GetByID(ctx *fiber.Ctx) error {
 	userContext := requestid.SetContext(ctx.UserContext(), ctx)
 	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
 
 	id, _ := ctx.ParamsInt("id")
-	request := &model.GetProvinceRequest{
+	request := &model.GetByIDRequest{
 		ID: id,
 	}
 
-	response, err := c.UseCase.Get(userContext, request)
+	response, err := c.UseCase.GetByID(userContext, request)
 	if err != nil {
 		logger.Warn(err.Error())
 		return err
