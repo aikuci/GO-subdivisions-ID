@@ -26,17 +26,21 @@ type BootstrapConfig struct {
 func Bootstrap(config *BootstrapConfig) {
 	// setup repositories
 	provinceRepository := repository.NewCrudRepository[entity.Province](config.Log)
+	cityRepository := repository.NewCrudRepository[entity.City](config.Log)
 
 	// setup use cases
 	provinceUseCase := usecase.NewCrudUseCase(config.Log, config.DB, provinceRepository, mapper.NewProvinceMapper())
+	cityUseCase := usecase.NewCrudUseCase(config.Log, config.DB, cityRepository, mapper.NewCityMapper())
 
 	// setup controllers
 	provinceController := http.NewCrudController(config.Log, provinceUseCase)
+	cityController := http.NewCrudController(config.Log, cityUseCase)
 
 	routeConfig := route.RouteConfig{
 		App:                config.App,
 		DB:                 config.DB,
 		ProvinceController: provinceController,
+		CityController:     cityController,
 	}
 	routeConfig.Setup()
 }

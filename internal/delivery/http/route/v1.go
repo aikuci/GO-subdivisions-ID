@@ -11,4 +11,7 @@ func (c *RouteConfig) SetupV1Route() {
 
 	v1.Get("/provinces", c.ProvinceController.List)
 	v1.Get("/provinces/:id<int>", c.ProvinceController.GetByID)
+
+	v1.Get("/cities", c.CityController.List)
+	v1.Get("/cities/:id<int>", c.CityController.GetByID)
 }
