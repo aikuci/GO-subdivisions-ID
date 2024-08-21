@@ -18,18 +18,18 @@ import (
 )
 
 type CrudUseCase struct {
-	Log            *zap.Logger
-	Validate       *validator.Validate
-	DB             *gorm.DB
-	CrudRepository *repository.CrudRepository
+	Log        *zap.Logger
+	Validate   *validator.Validate
+	DB         *gorm.DB
+	Repository repository.CrudRepositorier[entity.Province]
 }
 
-func NewCrudUseCase(logger *zap.Logger, db *gorm.DB, testRepository *repository.CrudRepository,
+func NewCrudUseCase(logger *zap.Logger, db *gorm.DB, repository repository.CrudRepositorier[entity.Province],
 ) *CrudUseCase {
 	return &CrudUseCase{
-		Log:            logger,
-		DB:             db,
-		CrudRepository: testRepository,
+		Log:        logger,
+		DB:         db,
+		Repository: repository,
 	}
 }
 
@@ -39,7 +39,7 @@ func (uc *CrudUseCase) List(ctx context.Context, request *model.ListRequest) ([]
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	data, err := uc.CrudRepository.FindAll(tx)
+	data, err := uc.Repository.FindAll(tx)
 	if err != nil {
 		logger.Warn(err.Error())
 		return nil, fiber.ErrInternalServerError
@@ -66,7 +66,7 @@ func (uc *CrudUseCase) GetByID(ctx context.Context, request *model.GetByIDReques
 
 	province := new(entity.Province)
 	ID := request.ID
-	if err := uc.CrudRepository.FindById(tx, province, ID); err != nil {
+	if err := uc.Repository.FindById(tx, province, ID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logger.Warn(err.Error(), zap.String("errorMessage", fmt.Sprintf("failed to get province with ID: %d", ID)))
 			return nil, fiber.ErrNotFound

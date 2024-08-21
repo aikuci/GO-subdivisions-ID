@@ -6,6 +6,11 @@ type Repository[T any] struct {
 	DB *gorm.DB
 }
 
+type CrudRepositorier[T any] interface {
+	FindById(db *gorm.DB, entity *T, id any) error
+	FindAll(tx *gorm.DB) ([]T, error)
+}
+
 func (r *Repository[T]) Create(db *gorm.DB, entity *T) error {
 	return db.Create(entity).Error
 }
@@ -26,4 +31,12 @@ func (r *Repository[T]) CountById(db *gorm.DB, id any) (int64, error) {
 
 func (r *Repository[T]) FindById(db *gorm.DB, entity *T, id any) error {
 	return db.Where("id = ?", id).Take(entity).Error
+}
+
+func (r *Repository[T]) FindAll(tx *gorm.DB) ([]T, error) {
+	var provinces []T
+	if err := tx.Find(&provinces).Error; err != nil {
+		return nil, err
+	}
+	return provinces, nil
 }

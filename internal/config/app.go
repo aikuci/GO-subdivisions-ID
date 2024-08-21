@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http"
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/route"
+	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
@@ -24,7 +25,7 @@ type BootstrapConfig struct {
 
 func Bootstrap(config *BootstrapConfig) {
 	// setup repositories
-	crudRepository := repository.NewCrudRepository(config.Log)
+	crudRepository := repository.NewCrudRepository[entity.Province](config.Log)
 	provinceRepository := repository.NewProvinceRepository(config.Log)
 
 	// setup use cases
