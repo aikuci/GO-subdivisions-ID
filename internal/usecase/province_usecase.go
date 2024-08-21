@@ -21,10 +21,10 @@ type ProvinceUseCase struct {
 	Log        *zap.Logger
 	Validate   *validator.Validate
 	DB         *gorm.DB
-	Repository repository.CrudRepositorier[entity.Province]
+	Repository repository.CruderRepository[entity.Province]
 }
 
-func NewProvinceUseCase(logger *zap.Logger, db *gorm.DB, repository repository.CrudRepositorier[entity.Province],
+func NewProvinceUseCase(logger *zap.Logger, db *gorm.DB, repository repository.CruderRepository[entity.Province],
 ) *ProvinceUseCase {
 	return &ProvinceUseCase{
 		Log:        logger,

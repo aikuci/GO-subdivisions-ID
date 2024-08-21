@@ -6,11 +6,6 @@ type Repository[T any] struct {
 	DB *gorm.DB
 }
 
-type CrudRepositorier[T any] interface {
-	FindById(db *gorm.DB, entity *T, id any) error
-	FindAll(tx *gorm.DB) ([]T, error)
-}
-
 func (r *Repository[T]) Create(db *gorm.DB, entity *T) error {
 	return db.Create(entity).Error
 }

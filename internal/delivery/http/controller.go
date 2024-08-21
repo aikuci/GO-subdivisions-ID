@@ -11,10 +11,10 @@ import (
 
 type CrudController[T any] struct {
 	Log     *zap.Logger
-	UseCase usecase.CrudUseCaser[T]
+	UseCase usecase.CruderUseCase[T]
 }
 
-func NewCrudController[T any](log *zap.Logger, useCase usecase.CrudUseCaser[T]) *CrudController[T] {
+func NewCrudController[T any](log *zap.Logger, useCase usecase.CruderUseCase[T]) *CrudController[T] {
 	return &CrudController[T]{
 		Log:     log,
 		UseCase: useCase,
