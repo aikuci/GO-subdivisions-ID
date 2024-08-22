@@ -18,7 +18,9 @@ import (
 
 type CruderUseCase[T any] interface {
 	List(ctx context.Context, request *model.ListRequest) ([]T, error)
-	GetByID(ctx context.Context, request *model.GetByIDRequest) (*T, error)
+	GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]T, error)
+	GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]T, error)
+	GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error)
 }
 
 type CrudUseCase[TEntity any, TModel any] struct {
@@ -29,9 +31,9 @@ type CrudUseCase[TEntity any, TModel any] struct {
 	Mapper     mapper.CruderMapper[TEntity, TModel]
 }
 
-func NewCrudUseCase[TEntity any, TModel any](logger *zap.Logger, db *gorm.DB, repository repository.CruderRepository[TEntity], mapper mapper.CruderMapper[TEntity, TModel]) *CrudUseCase[TEntity, TModel] {
+func NewCrudUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[TEntity], mapper mapper.CruderMapper[TEntity, TModel]) *CrudUseCase[TEntity, TModel] {
 	return &CrudUseCase[TEntity, TModel]{
-		Log:        logger,
+		Log:        log,
 		DB:         db,
 		Repository: repository,
 		Mapper:     mapper,
@@ -44,7 +46,7 @@ func (uc *CrudUseCase[TEntity, TModel]) List(ctx context.Context, request *model
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	collections, err := uc.Repository.FindAll(tx)
+	collections, err := uc.Repository.Find(tx)
 	if err != nil {
 		logger.Warn(err.Error())
 		return nil, fiber.ErrInternalServerError
@@ -63,17 +65,67 @@ func (uc *CrudUseCase[TEntity, TModel]) List(ctx context.Context, request *model
 	return responses, nil
 }
 
-func (uc *CrudUseCase[TEntity, TModel]) GetByID(ctx context.Context, request *model.GetByIDRequest) (*TModel, error) {
+func (uc *CrudUseCase[TEntity, TModel]) GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]TModel, error) {
 	logger := uc.Log.With(zap.String(string("requestid"), requestid.FromContext(ctx)))
 
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	collection := new(TEntity)
-	ID := request.ID
-	if err := uc.Repository.FindById(tx, collection, ID); err != nil {
+	collections, err := uc.Repository.FindById(tx, request.ID)
+	if err != nil {
+		logger.Warn(err.Error())
+		return nil, fiber.ErrInternalServerError
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		logger.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
+		return nil, fiber.ErrInternalServerError
+	}
+
+	responses := make([]TModel, len(collections))
+	for i, collection := range collections {
+		responses[i] = *uc.Mapper.ModelToResponse(&collection)
+	}
+
+	return responses, nil
+}
+
+func (uc *CrudUseCase[TEntity, TModel]) GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]TModel, error) {
+	logger := uc.Log.With(zap.String(string("requestid"), requestid.FromContext(ctx)))
+
+	tx := uc.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	collections, err := uc.Repository.FindByIds(tx, request.ID)
+	if err != nil {
+		logger.Warn(err.Error())
+		return nil, fiber.ErrInternalServerError
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		logger.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
+		return nil, fiber.ErrInternalServerError
+	}
+
+	responses := make([]TModel, len(collections))
+	for i, collection := range collections {
+		responses[i] = *uc.Mapper.ModelToResponse(&collection)
+	}
+
+	return responses, nil
+}
+
+func (uc *CrudUseCase[TEntity, TModel]) GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*TModel, error) {
+	logger := uc.Log.With(zap.String(string("requestid"), requestid.FromContext(ctx)))
+
+	tx := uc.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	id := request.ID
+	collection, err := uc.Repository.FirstById(tx, id)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			logger.Warn(err.Error(), zap.String("errorMessage", fmt.Sprintf("failed to get data with ID: %d", ID)))
+			logger.Warn(err.Error(), zap.String("errorMessage", fmt.Sprintf("failed to get data with ID: %d", id)))
 			return nil, fiber.ErrNotFound
 		}
 

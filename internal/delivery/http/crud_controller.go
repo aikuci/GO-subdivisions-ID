@@ -40,12 +40,42 @@ func (c *CrudController[T]) GetByID(ctx *fiber.Ctx) error {
 	userContext := requestid.SetContext(ctx.UserContext(), ctx)
 	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
 
+	request := &model.GetByIDRequest[int]{}
+
+	responses, err := c.UseCase.GetByID(userContext, request)
+	if err != nil {
+		logger.Warn(err.Error())
+		return err
+	}
+
+	return ctx.JSON(model.WebResponse[[]T]{Data: responses})
+}
+
+func (c *CrudController[T]) GetByIDs(ctx *fiber.Ctx) error {
+	userContext := requestid.SetContext(ctx.UserContext(), ctx)
+	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
+
+	request := &model.GetByIDRequest[[]int]{}
+
+	responses, err := c.UseCase.GetByIDs(userContext, request)
+	if err != nil {
+		logger.Warn(err.Error())
+		return err
+	}
+
+	return ctx.JSON(model.WebResponse[[]T]{Data: responses})
+}
+
+func (c *CrudController[T]) GetFirstByID(ctx *fiber.Ctx) error {
+	userContext := requestid.SetContext(ctx.UserContext(), ctx)
+	logger := c.Log.With(zap.String(string("requestid"), requestid.FromContext(userContext)))
+
 	id, _ := ctx.ParamsInt("id")
-	request := &model.GetByIDRequest{
+	request := &model.GetByIDRequest[int]{
 		ID: id,
 	}
 
-	response, err := c.UseCase.GetByID(userContext, request)
+	response, err := c.UseCase.GetFirstByID(userContext, request)
 	if err != nil {
 		logger.Warn(err.Error())
 		return err
