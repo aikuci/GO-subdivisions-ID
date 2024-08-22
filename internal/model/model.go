@@ -22,8 +22,16 @@ type PageMetadata struct {
 	TotalPage int64 `json:"total_page"`
 }
 
+type IdSingular interface {
+	int | string
+}
+
+type IdPlural interface {
+	[]int | []string
+}
+
 type IdOrIds interface {
-	int | []int
+	IdSingular | IdPlural
 }
 
 type ListRequest struct {
