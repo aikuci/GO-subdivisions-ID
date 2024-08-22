@@ -3,7 +3,7 @@ package model
 import "github.com/lib/pq"
 
 type ProvinceResponse struct {
-	BaseCollectionResponse
+	BaseCollectionResponse[int]
 	Code        string        `json:"code"`
 	Name        string        `json:"name"`
 	PostalCodes pq.Int64Array `json:"postal_codes"`

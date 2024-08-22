@@ -13,7 +13,7 @@ func NewProvinceMapper() *ProvinceMapper {
 
 func (m *ProvinceMapper) ModelToResponse(province *entity.Province) *model.ProvinceResponse {
 	return &model.ProvinceResponse{
-		BaseCollectionResponse: model.BaseCollectionResponse{ID: province.ID},
+		BaseCollectionResponse: model.BaseCollectionResponse[int]{ID: province.ID},
 		Code:                   province.Code,
 		Name:                   province.Name,
 		PostalCodes:            province.PostalCodes,
