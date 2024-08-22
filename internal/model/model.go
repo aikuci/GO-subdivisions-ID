@@ -22,9 +22,13 @@ type PageMetadata struct {
 	TotalPage int64 `json:"total_page"`
 }
 
+type IdOrIds interface {
+	int | []int
+}
+
 type ListRequest struct {
 }
 
-type GetByIDRequest struct {
-	ID int `json:"-" validate:"required"`
+type GetByIDRequest[T IdOrIds] struct {
+	ID T `json:"-" validate:"required"`
 }
