@@ -25,8 +25,8 @@ type BootstrapConfig struct {
 
 func Bootstrap(config *BootstrapConfig) {
 	// setup repositories
-	provinceRepository := repository.NewCrudRepository[entity.Province](config.Log)
-	cityRepository := repository.NewCrudRepository[entity.City](config.Log)
+	provinceRepository := repository.NewCrudRepository[entity.Province, int, []int]()
+	cityRepository := repository.NewCrudRepository[entity.City, int, []int]()
 
 	// setup use cases
 	provinceUseCase := usecase.NewCrudUseCase(config.Log, config.DB, provinceRepository, mapper.NewProvinceMapper())
