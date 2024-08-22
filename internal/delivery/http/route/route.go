@@ -14,7 +14,7 @@ type RouteConfig struct {
 	App                *fiber.App
 	DB                 *gorm.DB
 	ProvinceController *http.CrudController[model.ProvinceResponse]
-	CityController     *http.CrudController[model.CityResponse]
+	CityController     *http.CityController
 }
 
 func (c *RouteConfig) Setup() {
