@@ -50,13 +50,11 @@ func NewCrudUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, repos
 	}
 }
 
-func (uc *CrudUseCase[TEntity, TModel]) ListCorefunc(tx *gorm.DB) ([]TEntity, error) {
-	collections, err := uc.Repository.Find(uc.UseCase.DB)
-
-	uc.Log.Info("UseCase Core Fn") // BUG: Display Bug
+func (uc *CrudUseCase[TEntity, TModel]) ListFn(cp *CallbackParam) ([]TEntity, error) {
+	collections, err := uc.Repository.Find(cp.tx)
 
 	if err != nil {
-		uc.UseCase.Log.Warn(err.Error())
+		cp.log.Warn(err.Error())
 		return nil, fiber.ErrInternalServerError
 	}
 
@@ -64,9 +62,12 @@ func (uc *CrudUseCase[TEntity, TModel]) ListCorefunc(tx *gorm.DB) ([]TEntity, er
 }
 
 func (uc *CrudUseCase[TEntity, TModel]) List(ctx context.Context, request *model.ListRequest) ([]TModel, error) {
-	return uc.UseCase.WrapperPlural(
+	useCase := NewUseCase(uc.Log, uc.DB, uc.Mapper)
+
+	return WrapperPlural(
 		ctx,
-		uc.ListCorefunc,
+		useCase,
+		uc.ListFn,
 	)
 }
 

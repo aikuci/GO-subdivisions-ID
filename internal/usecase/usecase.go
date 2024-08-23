@@ -25,40 +25,24 @@ func NewUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, mapper ma
 	}
 }
 
-func (uc *UseCase[TEntity, TModel]) WrapperSingular(ctx context.Context, callback func(_ *gorm.DB) (*TEntity, error)) (*TEntity, error) {
-	uc.Log = uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
-
-	tx := uc.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
-
-	result, err := callback(tx)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		uc.Log.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
-		return nil, fiber.ErrInternalServerError
-	}
-
-	return result, nil
+type CallbackParam struct {
+	tx  *gorm.DB
+	log *zap.Logger
 }
 
-func (uc *UseCase[TEntity, TModel]) WrapperPlural(ctx context.Context, callback func(_ *gorm.DB) ([]TEntity, error)) ([]TModel, error) {
-	uc.Log = uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
-
-	uc.Log.Info("UseCase") // BUG: Display Bug
+func WrapperPlural[TEntity any, TModel any](ctx context.Context, uc *UseCase[TEntity, TModel], callback func(cp *CallbackParam) ([]TEntity, error)) ([]TModel, error) {
+	log := uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
 
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	collections, err := callback(tx)
+	collections, err := callback(&CallbackParam{tx: tx, log: log})
 	if err != nil {
 		return nil, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		uc.Log.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
+		log.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
 		return nil, fiber.ErrInternalServerError
 	}
 
