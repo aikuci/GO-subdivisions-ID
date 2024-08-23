@@ -9,30 +9,24 @@ import (
 )
 
 type CrudController[T any] struct {
-	Controller *Controller
-
+	Log     *zap.Logger
 	UseCase usecase.CruderUseCase[T]
 }
 
 func NewCrudController[T any](log *zap.Logger, useCase usecase.CruderUseCase[T]) *CrudController[T] {
-	controller := NewController(log) // BUG: Potential issue with state persistence
-
 	return &CrudController[T]{
-		Controller: controller,
-
+		Log:     log,
 		UseCase: useCase,
 	}
 }
 
 func (c *CrudController[T]) List(ctx *fiber.Ctx) error {
-	c.Controller.Prepare(ctx)
-
-	c.Controller.Log.Info("Controller") // BUG: Display Bug
+	controller := Prepare(ctx, c.Log)
 
 	request := &model.ListRequest{}
-	responses, err := c.UseCase.List(c.Controller.context, request)
+	responses, err := c.UseCase.List(controller.context, request)
 	if err != nil {
-		c.Controller.Log.Warn(err.Error())
+		controller.log.Warn(err.Error())
 		return err
 	}
 
@@ -40,13 +34,13 @@ func (c *CrudController[T]) List(ctx *fiber.Ctx) error {
 }
 
 func (c *CrudController[T]) GetByID(ctx *fiber.Ctx) error {
-	c.Controller.Prepare(ctx)
+	controller := Prepare(ctx, c.Log)
 
 	id, _ := ctx.ParamsInt("id")
 	request := &model.GetByIDRequest[int]{ID: id}
-	responses, err := c.UseCase.GetByID(c.Controller.context, request)
+	responses, err := c.UseCase.GetByID(controller.context, request)
 	if err != nil {
-		c.Controller.Log.Warn(err.Error())
+		controller.log.Warn(err.Error())
 		return err
 	}
 
@@ -54,13 +48,13 @@ func (c *CrudController[T]) GetByID(ctx *fiber.Ctx) error {
 }
 
 func (c *CrudController[T]) GetByIDs(ctx *fiber.Ctx) error {
-	c.Controller.Prepare(ctx)
+	controller := Prepare(ctx, c.Log)
 
 	// TODO: Collect ids
 	request := &model.GetByIDRequest[[]int]{}
-	responses, err := c.UseCase.GetByIDs(c.Controller.context, request)
+	responses, err := c.UseCase.GetByIDs(controller.context, request)
 	if err != nil {
-		c.Controller.Log.Warn(err.Error())
+		controller.log.Warn(err.Error())
 		return err
 	}
 
@@ -68,13 +62,13 @@ func (c *CrudController[T]) GetByIDs(ctx *fiber.Ctx) error {
 }
 
 func (c *CrudController[T]) GetFirstByID(ctx *fiber.Ctx) error {
-	c.Controller.Prepare(ctx)
+	controller := Prepare(ctx, c.Log)
 
 	id, _ := ctx.ParamsInt("id")
 	request := &model.GetByIDRequest[int]{ID: id}
-	response, err := c.UseCase.GetFirstByID(c.Controller.context, request)
+	response, err := c.UseCase.GetFirstByID(controller.context, request)
 	if err != nil {
-		c.Controller.Log.Warn(err.Error())
+		controller.log.Warn(err.Error())
 		return err
 	}
 

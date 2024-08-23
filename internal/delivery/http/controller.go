@@ -11,16 +11,14 @@ import (
 
 type Controller struct {
 	context context.Context
-	Log     *zap.Logger
+	log     *zap.Logger
 }
 
-func NewController(log *zap.Logger) *Controller {
+func Prepare(ctx *fiber.Ctx, log *zap.Logger) *Controller {
+	context := requestid.SetContext(ctx.UserContext(), ctx)
+
 	return &Controller{
-		Log: log,
+		context: context,
+		log:     log.With(zap.String("requestid", requestid.FromContext(context))),
 	}
-}
-
-func (c *Controller) Prepare(ctx *fiber.Ctx) {
-	c.context = requestid.SetContext(ctx.UserContext(), ctx)
-	c.Log = c.Log.With(zap.String("requestid", requestid.FromContext(c.context)))
 }
