@@ -11,32 +11,35 @@ import (
 	"gorm.io/gorm"
 )
 
-type UseCase[TEntity any, TModel any] struct {
-	Log    *zap.Logger
-	DB     *gorm.DB
-	Mapper mapper.CruderMapper[TEntity, TModel]
+type UseCase[TEntity any, TModel any, TRequest any] struct {
+	Log     *zap.Logger
+	DB      *gorm.DB
+	Mapper  mapper.CruderMapper[TEntity, TModel]
+	Request TRequest
 }
 
-func NewUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, mapper mapper.CruderMapper[TEntity, TModel]) *UseCase[TEntity, TModel] {
-	return &UseCase[TEntity, TModel]{
-		Log:    log,
-		DB:     db,
-		Mapper: mapper,
+func NewUseCase[TEntity any, TModel any, TRequest any](log *zap.Logger, db *gorm.DB, mapper mapper.CruderMapper[TEntity, TModel], request TRequest) *UseCase[TEntity, TModel, TRequest] {
+	return &UseCase[TEntity, TModel, TRequest]{
+		Log:     log,
+		DB:      db,
+		Mapper:  mapper,
+		Request: request,
 	}
 }
 
-type CallbackParam struct {
-	tx  *gorm.DB
-	log *zap.Logger
+type CallbackParam[TRequest any] struct {
+	tx      *gorm.DB
+	log     *zap.Logger
+	request TRequest
 }
 
-func WrapperPlural[TEntity any, TModel any](ctx context.Context, uc *UseCase[TEntity, TModel], callback func(cp *CallbackParam) ([]TEntity, error)) ([]TModel, error) {
+func WrapperPlural[TEntity any, TModel any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TModel, TRequest], callback func(cp *CallbackParam[TRequest]) ([]TEntity, error)) ([]TModel, error) {
 	log := uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
 
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	collections, err := callback(&CallbackParam{tx: tx, log: log})
+	collections, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
 	if err != nil {
 		return nil, err
 	}
