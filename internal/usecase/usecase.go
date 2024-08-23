@@ -47,6 +47,8 @@ func (uc *UseCase[TEntity, TModel]) WrapperSingular(ctx context.Context, callbac
 func (uc *UseCase[TEntity, TModel]) WrapperPlural(ctx context.Context, callback func(_ *gorm.DB) ([]TEntity, error)) ([]TModel, error) {
 	uc.Log = uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
 
+	uc.Log.Info("UseCase") // BUG: Display Bug
+
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 

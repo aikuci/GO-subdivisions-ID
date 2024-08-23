@@ -15,7 +15,7 @@ type CrudController[T any] struct {
 }
 
 func NewCrudController[T any](log *zap.Logger, useCase usecase.CruderUseCase[T]) *CrudController[T] {
-	controller := NewController(log)
+	controller := NewController(log) // BUG: Potential issue with state persistence
 
 	return &CrudController[T]{
 		Controller: controller,
@@ -26,6 +26,8 @@ func NewCrudController[T any](log *zap.Logger, useCase usecase.CruderUseCase[T])
 
 func (c *CrudController[T]) List(ctx *fiber.Ctx) error {
 	c.Controller.Prepare(ctx)
+
+	c.Controller.Log.Info("Controller") // BUG: Display Bug
 
 	request := &model.ListRequest{}
 	responses, err := c.UseCase.List(c.Controller.context, request)

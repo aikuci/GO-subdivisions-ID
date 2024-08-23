@@ -32,7 +32,13 @@ type CrudUseCase[TEntity any, TModel any] struct {
 }
 
 func NewCrudUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[TEntity], mapper mapper.CruderMapper[TEntity, TModel]) *CrudUseCase[TEntity, TModel] {
-	useCase := NewUseCase[TEntity, TModel](log, db, mapper)
+	useCase := NewUseCase(log, db, mapper) // BUG: Potential issue with state persistence
+	// BUG: The NewUseCase function is expected to be called only once.
+	// If NewCrudUseCase is invoked multiple times, it could lead to unexpected behavior due to the reuse of the UseCase instance from the initial call.
+	// This might cause unintended side effects if the UseCase instance holds state or data that persists across multiple invocations.
+
+	// NOTE: The UseCase instance is designed to be used from the initial call. Any modifications or data appending (e.g., via uc.UseCase.Log)
+	// could lead to memory leaks or unintended data accumulation. Ensure that the UseCase instance is properly managed to avoid such issues.
 
 	return &CrudUseCase[TEntity, TModel]{
 		UseCase: *useCase,
@@ -46,6 +52,8 @@ func NewCrudUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, repos
 
 func (uc *CrudUseCase[TEntity, TModel]) ListCorefunc(tx *gorm.DB) ([]TEntity, error) {
 	collections, err := uc.Repository.Find(uc.UseCase.DB)
+
+	uc.Log.Info("UseCase Core Fn") // BUG: Display Bug
 
 	if err != nil {
 		uc.UseCase.Log.Warn(err.Error())
