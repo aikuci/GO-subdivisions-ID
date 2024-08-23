@@ -10,7 +10,6 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -24,15 +23,20 @@ type CruderUseCase[T any] interface {
 }
 
 type CrudUseCase[TEntity any, TModel any] struct {
+	UseCase UseCase[TEntity, TModel]
+
 	Log        *zap.Logger
-	Validate   *validator.Validate
 	DB         *gorm.DB
 	Repository repository.CruderRepository[TEntity]
 	Mapper     mapper.CruderMapper[TEntity, TModel]
 }
 
 func NewCrudUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[TEntity], mapper mapper.CruderMapper[TEntity, TModel]) *CrudUseCase[TEntity, TModel] {
+	useCase := NewUseCase[TEntity, TModel](log, db, mapper)
+
 	return &CrudUseCase[TEntity, TModel]{
+		UseCase: *useCase,
+
 		Log:        log,
 		DB:         db,
 		Repository: repository,
@@ -40,29 +44,22 @@ func NewCrudUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, repos
 	}
 }
 
-func (uc *CrudUseCase[TEntity, TModel]) List(ctx context.Context, request *model.ListRequest) ([]TModel, error) {
-	logger := uc.Log.With(zap.String(string("requestid"), requestid.FromContext(ctx)))
+func (uc *CrudUseCase[TEntity, TModel]) ListCorefunc(tx *gorm.DB) ([]TEntity, error) {
+	collections, err := uc.Repository.Find(uc.UseCase.DB)
 
-	tx := uc.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
-
-	collections, err := uc.Repository.Find(tx)
 	if err != nil {
-		logger.Warn(err.Error())
+		uc.UseCase.Log.Warn(err.Error())
 		return nil, fiber.ErrInternalServerError
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		logger.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
-		return nil, fiber.ErrInternalServerError
-	}
+	return collections, nil
+}
 
-	responses := make([]TModel, len(collections))
-	for i, collection := range collections {
-		responses[i] = *uc.Mapper.ModelToResponse(&collection)
-	}
-
-	return responses, nil
+func (uc *CrudUseCase[TEntity, TModel]) List(ctx context.Context, request *model.ListRequest) ([]TModel, error) {
+	return uc.UseCase.WrapperPlural(
+		ctx,
+		uc.ListCorefunc,
+	)
 }
 
 func (uc *CrudUseCase[TEntity, TModel]) GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]TModel, error) {
