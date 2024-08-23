@@ -61,3 +61,49 @@ func WrapperPlural[TEntity any, TModel any, TRequest any](ctx *fiber.Ctx, c *Con
 
 	return ctx.JSON(model.WebResponse[[]TModel]{Data: responses})
 }
+
+func ParseId[T model.IdSingular](ctx *fiber.Ctx) (*T, error) {
+	id := new(model.IdSingularRequest[T])
+	if err := ParseRequest(ctx, id); err != nil {
+		return nil, err
+	}
+	return &id.ID, nil
+}
+
+func ParseIds[T model.IdPlural](ctx *fiber.Ctx) (*T, error) {
+	ids := new(model.IdPluralRequest[T])
+	if err := ParseRequest(ctx, ids); err != nil {
+		return nil, err
+	}
+	return &ids.ID, nil
+}
+
+func ParseRequest(ctx *fiber.Ctx, request any) error {
+	if err := ctx.QueryParser(request); err != nil {
+		return err
+	}
+
+	if err := ctx.ParamsParser(request); err != nil {
+		return err
+	}
+
+	method := ctx.Method()
+	if method == "GET" {
+		return nil
+	}
+
+	if err := ctx.BodyParser(request); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ParseIntFromParamOrQuery(ctx *fiber.Ctx, requestKey string) int {
+	requestValue, err := ctx.ParamsInt(requestKey)
+	if err == nil {
+		return requestValue
+	}
+
+	return ctx.QueryInt(requestKey)
+}

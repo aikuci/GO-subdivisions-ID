@@ -48,8 +48,11 @@ func (c *CrudController[TEntity, TModel]) GetByID(ctx *fiber.Ctx) error {
 	)
 }
 func (c *CrudController[TEntity, TModel]) getByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
-	id, _ := cp.fiberCtx.ParamsInt("id")
-	request := &model.GetByIDRequest[int]{ID: id}
+	id, err := ParseId[int](cp.fiberCtx)
+	if err != nil {
+		return nil, err
+	}
+	request := &model.GetByIDRequest[int]{ID: *id}
 
 	return c.UseCase.GetByID(cp.context, request)
 }
@@ -64,8 +67,11 @@ func (c *CrudController[TEntity, TModel]) GetByIDs(ctx *fiber.Ctx) error {
 	)
 }
 func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
-	// TODO: Collect ids
-	request := &model.GetByIDRequest[[]int]{ID: []int{}}
+	ids, err := ParseIds[[]int](cp.fiberCtx)
+	if err != nil {
+		return nil, err
+	}
+	request := &model.GetByIDRequest[[]int]{ID: *ids}
 
 	return c.UseCase.GetByIDs(cp.context, request)
 }
@@ -80,8 +86,11 @@ func (c *CrudController[TEntity, TModel]) GetFirstByID(ctx *fiber.Ctx) error {
 	)
 }
 func (c *CrudController[TEntity, TModel]) getFirstByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*TEntity, error) {
-	id, _ := cp.fiberCtx.ParamsInt("id")
-	request := &model.GetByIDRequest[int]{ID: id}
+	id, err := ParseId[int](cp.fiberCtx)
+	if err != nil {
+		return nil, err
+	}
+	request := &model.GetByIDRequest[int]{ID: *id}
 
 	return c.UseCase.GetFirstByID(cp.context, request)
 }
