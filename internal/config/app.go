@@ -30,11 +30,11 @@ func Bootstrap(config *BootstrapConfig) {
 
 	// setup use cases
 	provinceUseCase := usecase.NewCrudUseCase(config.Log, config.DB, provinceRepository, mapper.NewProvinceMapper())
-	cityUseCase := usecase.NewCityUseCase(config.Log, config.DB, cityRepository, mapper.NewCityMapper())
+	cityUseCase := usecase.NewCrudUseCase(config.Log, config.DB, cityRepository, mapper.NewCityMapper())
 
 	// setup controllers
 	provinceController := http.NewCrudController(config.Log, provinceUseCase)
-	cityController := http.NewCityController(config.Log, cityUseCase)
+	cityController := http.NewCrudController(config.Log, cityUseCase)
 
 	routeConfig := route.RouteConfig{
 		App:                config.App,
