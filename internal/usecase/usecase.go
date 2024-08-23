@@ -33,6 +33,25 @@ type CallbackParam[TRequest any] struct {
 	request TRequest
 }
 
+func WrapperSingular[TEntity any, TModel any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TModel, TRequest], callback func(cp *CallbackParam[TRequest]) (*TEntity, error)) (*TModel, error) {
+	log := uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
+
+	tx := uc.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	collection, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		log.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
+		return nil, fiber.ErrInternalServerError
+	}
+
+	return uc.Mapper.ModelToResponse(collection), nil
+}
+
 func WrapperPlural[TEntity any, TModel any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TModel, TRequest], callback func(cp *CallbackParam[TRequest]) ([]TEntity, error)) ([]TModel, error) {
 	log := uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
 

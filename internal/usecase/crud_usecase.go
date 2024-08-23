@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
@@ -99,27 +98,27 @@ func (uc *CrudUseCase[TEntity, TModel]) GetByIdsFn(cp *CallbackParam[*model.GetB
 }
 
 func (uc *CrudUseCase[TEntity, TModel]) GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*TModel, error) {
-	logger := uc.Log.With(zap.String(string("requestid"), requestid.FromContext(ctx)))
+	useCase := NewUseCase(uc.Log, uc.DB, uc.Mapper, request)
 
-	tx := uc.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
+	return WrapperSingular(
+		ctx,
+		useCase,
+		uc.GetFirstByIdFn,
+	)
+}
+func (uc *CrudUseCase[TEntity, TModel]) GetFirstByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*TEntity, error) {
+	id := cp.request.ID
+	collection, err := uc.Repository.FirstById(cp.tx, id)
 
-	id := request.ID
-	collection, err := uc.Repository.FirstById(tx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			logger.Warn(err.Error(), zap.String("errorMessage", fmt.Sprintf("failed to get data with ID: %d", id)))
+			cp.log.Warn(err.Error(), zap.String("errorMessage", fmt.Sprintf("failed to get data with ID: %d", id)))
 			return nil, fiber.ErrNotFound
 		}
 
-		logger.Warn(err.Error())
+		cp.log.Warn(err.Error())
 		return nil, fiber.ErrInternalServerError
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		logger.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
-		return nil, fiber.ErrInternalServerError
-	}
-
-	return uc.Mapper.ModelToResponse(collection), nil
+	return collection, nil
 }
