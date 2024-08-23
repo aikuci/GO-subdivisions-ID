@@ -2,75 +2,86 @@ package http
 
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/model"
+	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
-type CrudController[T any] struct {
+type CrudController[TEntity any, TModel any] struct {
 	Log     *zap.Logger
-	UseCase usecase.CruderUseCase[T]
+	UseCase usecase.CruderUseCase[TEntity]
+	Mapper  mapper.CruderMapper[TEntity, TModel]
 }
 
-func NewCrudController[T any](log *zap.Logger, useCase usecase.CruderUseCase[T]) *CrudController[T] {
-	return &CrudController[T]{
+func NewCrudController[TEntity any, TModel any](log *zap.Logger, useCase usecase.CruderUseCase[TEntity], mapper mapper.CruderMapper[TEntity, TModel]) *CrudController[TEntity, TModel] {
+	return &CrudController[TEntity, TModel]{
 		Log:     log,
 		UseCase: useCase,
+		Mapper:  mapper,
 	}
 }
 
-func (c *CrudController[T]) List(ctx *fiber.Ctx) error {
-	controller := Prepare(ctx, c.Log)
+func (c *CrudController[TEntity, TModel]) List(ctx *fiber.Ctx) error {
+	controller := NewController[TEntity, TModel, *model.ListRequest](c.Log, c.Mapper)
 
+	return WrapperPlural(
+		ctx,
+		controller,
+		c.listFn,
+	)
+}
+func (c *CrudController[TEntity, TModel]) listFn(cp *CallbackParam[*model.ListRequest]) ([]TEntity, error) {
 	request := &model.ListRequest{}
-	responses, err := c.UseCase.List(controller.context, request)
-	if err != nil {
-		controller.log.Warn(err.Error())
-		return err
-	}
 
-	return ctx.JSON(model.WebResponse[[]T]{Data: responses})
+	return c.UseCase.List(cp.context, request)
 }
 
-func (c *CrudController[T]) GetByID(ctx *fiber.Ctx) error {
-	controller := Prepare(ctx, c.Log)
+func (c *CrudController[TEntity, TModel]) GetByID(ctx *fiber.Ctx) error {
+	controller := NewController[TEntity, TModel, *model.GetByIDRequest[int]](c.Log, c.Mapper)
 
-	id, _ := ctx.ParamsInt("id")
+	return WrapperPlural(
+		ctx,
+		controller,
+		c.getByIDFn,
+	)
+}
+func (c *CrudController[TEntity, TModel]) getByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
+	id, _ := cp.fiberCtx.ParamsInt("id")
 	request := &model.GetByIDRequest[int]{ID: id}
-	responses, err := c.UseCase.GetByID(controller.context, request)
-	if err != nil {
-		controller.log.Warn(err.Error())
-		return err
-	}
 
-	return ctx.JSON(model.WebResponse[[]T]{Data: responses})
+	return c.UseCase.GetByID(cp.context, request)
 }
 
-func (c *CrudController[T]) GetByIDs(ctx *fiber.Ctx) error {
-	controller := Prepare(ctx, c.Log)
+func (c *CrudController[TEntity, TModel]) GetByIDs(ctx *fiber.Ctx) error {
+	controller := NewController[TEntity, TModel, *model.GetByIDRequest[[]int]](c.Log, c.Mapper)
 
+	return WrapperPlural(
+		ctx,
+		controller,
+		c.getByIDsFn,
+	)
+}
+func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
 	// TODO: Collect ids
-	request := &model.GetByIDRequest[[]int]{}
-	responses, err := c.UseCase.GetByIDs(controller.context, request)
-	if err != nil {
-		controller.log.Warn(err.Error())
-		return err
-	}
+	request := &model.GetByIDRequest[[]int]{ID: []int{}}
 
-	return ctx.JSON(model.WebResponse[[]T]{Data: responses})
+	return c.UseCase.GetByIDs(cp.context, request)
 }
 
-func (c *CrudController[T]) GetFirstByID(ctx *fiber.Ctx) error {
-	controller := Prepare(ctx, c.Log)
+func (c *CrudController[TEntity, TModel]) GetFirstByID(ctx *fiber.Ctx) error {
+	controller := NewController[TEntity, TModel, *model.GetByIDRequest[int]](c.Log, c.Mapper)
 
-	id, _ := ctx.ParamsInt("id")
+	return WrapperSingular(
+		ctx,
+		controller,
+		c.getFirstByIDFn,
+	)
+}
+func (c *CrudController[TEntity, TModel]) getFirstByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*TEntity, error) {
+	id, _ := cp.fiberCtx.ParamsInt("id")
 	request := &model.GetByIDRequest[int]{ID: id}
-	response, err := c.UseCase.GetFirstByID(controller.context, request)
-	if err != nil {
-		controller.log.Warn(err.Error())
-		return err
-	}
 
-	return ctx.JSON(model.WebResponse[*T]{Data: response})
+	return c.UseCase.GetFirstByID(cp.context, request)
 }

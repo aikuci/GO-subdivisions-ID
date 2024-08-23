@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/aikuci/go-subdivisions-id/internal/model"
-	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,32 +20,30 @@ type CruderUseCase[T any] interface {
 	GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error)
 }
 
-type CrudUseCase[TEntity any, TModel any] struct {
+type CrudUseCase[T any] struct {
 	Log        *zap.Logger
 	DB         *gorm.DB
-	Repository repository.CruderRepository[TEntity]
-	Mapper     mapper.CruderMapper[TEntity, TModel]
+	Repository repository.CruderRepository[T]
 }
 
-func NewCrudUseCase[TEntity any, TModel any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[TEntity], mapper mapper.CruderMapper[TEntity, TModel]) *CrudUseCase[TEntity, TModel] {
-	return &CrudUseCase[TEntity, TModel]{
+func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T]) *CrudUseCase[T] {
+	return &CrudUseCase[T]{
 		Log:        log,
 		DB:         db,
 		Repository: repository,
-		Mapper:     mapper,
 	}
 }
 
-func (uc *CrudUseCase[TEntity, TModel]) List(ctx context.Context, request *model.ListRequest) ([]TModel, error) {
-	useCase := NewUseCase(uc.Log, uc.DB, uc.Mapper, request)
+func (uc *CrudUseCase[T]) List(ctx context.Context, request *model.ListRequest) ([]T, error) {
+	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(
 		ctx,
 		useCase,
-		uc.ListFn,
+		uc.listFn,
 	)
 }
-func (uc *CrudUseCase[TEntity, TModel]) ListFn(cp *CallbackParam[*model.ListRequest]) ([]TEntity, error) {
+func (uc *CrudUseCase[T]) listFn(cp *CallbackParam[*model.ListRequest]) ([]T, error) {
 	collections, err := uc.Repository.Find(cp.tx)
 
 	if err != nil {
@@ -57,16 +54,16 @@ func (uc *CrudUseCase[TEntity, TModel]) ListFn(cp *CallbackParam[*model.ListRequ
 	return collections, nil
 }
 
-func (uc *CrudUseCase[TEntity, TModel]) GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]TModel, error) {
-	useCase := NewUseCase(uc.Log, uc.DB, uc.Mapper, request)
+func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]T, error) {
+	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(
 		ctx,
 		useCase,
-		uc.GetByIdFn,
+		uc.getByIdFn,
 	)
 }
-func (uc *CrudUseCase[TEntity, TModel]) GetByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
+func (uc *CrudUseCase[T]) getByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]T, error) {
 	collections, err := uc.Repository.FindById(cp.tx, cp.request.ID)
 
 	if err != nil {
@@ -77,16 +74,16 @@ func (uc *CrudUseCase[TEntity, TModel]) GetByIdFn(cp *CallbackParam[*model.GetBy
 	return collections, nil
 }
 
-func (uc *CrudUseCase[TEntity, TModel]) GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]TModel, error) {
-	useCase := NewUseCase(uc.Log, uc.DB, uc.Mapper, request)
+func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]T, error) {
+	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(
 		ctx,
 		useCase,
-		uc.GetByIdsFn,
+		uc.getByIdsFn,
 	)
 }
-func (uc *CrudUseCase[TEntity, TModel]) GetByIdsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
+func (uc *CrudUseCase[T]) getByIdsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]T, error) {
 	collections, err := uc.Repository.FindByIds(cp.tx, cp.request.ID)
 
 	if err != nil {
@@ -97,16 +94,16 @@ func (uc *CrudUseCase[TEntity, TModel]) GetByIdsFn(cp *CallbackParam[*model.GetB
 	return collections, nil
 }
 
-func (uc *CrudUseCase[TEntity, TModel]) GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*TModel, error) {
-	useCase := NewUseCase(uc.Log, uc.DB, uc.Mapper, request)
+func (uc *CrudUseCase[T]) GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error) {
+	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperSingular(
 		ctx,
 		useCase,
-		uc.GetFirstByIdFn,
+		uc.getFirstByIdFn,
 	)
 }
-func (uc *CrudUseCase[TEntity, TModel]) GetFirstByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*TEntity, error) {
+func (uc *CrudUseCase[T]) getFirstByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*T, error) {
 	id := cp.request.ID
 	collection, err := uc.Repository.FirstById(cp.tx, id)
 
