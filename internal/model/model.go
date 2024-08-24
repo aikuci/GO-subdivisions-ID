@@ -20,12 +20,17 @@ type IdPluralRequest[T IdPlural] struct {
 }
 
 // Request
+type RelationRequest struct {
+	Includes []string `json:"includes" query:"includes"`
+}
 type ListRequest struct {
+	RelationRequest
 }
 type GetByIDRequest[T IdOrIds] struct {
 	// The GET method does not include a request body.
 	// Therefore, we skip the bodyParser method and omit the json struct tag for this field.
 	ID T `json:"-" params:"id" query:"id" validate:"required"`
+	RelationRequest
 }
 
 // Response
