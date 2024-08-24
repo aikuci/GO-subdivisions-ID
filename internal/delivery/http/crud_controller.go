@@ -59,7 +59,7 @@ func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.Ge
 	if err != nil {
 		return nil, err
 	}
-	request := &model.GetByIDRequest[[]int]{ID: *ids}
+	request := &model.GetByIDRequest[[]int]{ID: ids}
 
 	return c.UseCase.GetByIDs(cp.context, request)
 }

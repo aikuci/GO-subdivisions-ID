@@ -45,38 +45,16 @@ func (uc *CityUseCase) GetFirstByID(ctx context.Context, request *model.GetByIDR
 }
 
 // Specific UseCase
-func (uc *CityUseCase) GetByIDProvinces(ctx context.Context, request *model.GetCityByIDProvinceRequest[[]int]) ([]entity.City, error) {
-	useCase := NewUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
-
-	return WrapperPlural(ctx, useCase, uc.getByIdProvincesFn)
-}
-func (uc *CityUseCase) getByIdProvincesFn(cp *CallbackParam[*model.GetCityByIDProvinceRequest[[]int]]) ([]entity.City, error) {
-	idProvince := cp.request.IDProvince
-	collections, err := uc.Repository.FindByIdProvinces(cp.tx, idProvince)
-
-	if err != nil {
-		cp.log.Warn(err.Error())
-		return nil, fiber.ErrInternalServerError
-	}
-
-	return collections, nil
-}
-
-func (uc *CityUseCase) GetByIDProvince(ctx context.Context, request *model.GetCityByIDProvinceRequest[int]) ([]entity.City, error) {
+func (uc *CityUseCase) GetByIDProvince(ctx context.Context, request *model.GetCityByIDProvinceRequest[[]int]) ([]entity.City, error) {
 	useCase := NewUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
 
 	return WrapperPlural(ctx, useCase, uc.getByIdProvinceFn)
 }
-func (uc *CityUseCase) getByIdProvinceFn(cp *CallbackParam[*model.GetCityByIDProvinceRequest[int]]) ([]entity.City, error) {
+func (uc *CityUseCase) getByIdProvinceFn(cp *CallbackParam[*model.GetCityByIDProvinceRequest[[]int]]) ([]entity.City, error) {
 	idProvince := cp.request.IDProvince
-	collections, err := uc.Repository.FindByIdProvince(cp.tx, idProvince)
+	collections, err := uc.Repository.FindByIdProvinces(cp.tx, idProvince)
 
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			cp.log.Warn(err.Error(), zap.String("errorMessage", fmt.Sprintf("failed to get cities data with ID Province: %d", idProvince)))
-			return nil, fiber.ErrNotFound
-		}
-
 		cp.log.Warn(err.Error())
 		return nil, fiber.ErrInternalServerError
 	}

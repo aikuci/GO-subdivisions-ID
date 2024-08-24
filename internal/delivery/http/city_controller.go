@@ -27,37 +27,32 @@ func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper map
 }
 
 func (c *CityController) GetByIdProvince(ctx *fiber.Ctx) error {
-	controller := NewController[entity.City, model.CityResponse, *model.GetCityByIDProvinceRequest[int]](c.CrudController.Log, c.CrudController.Mapper)
+	controller := NewController[entity.City, model.CityResponse, *model.GetCityByIDProvinceRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
 
-	return WrapperPlural(
-		ctx,
-		controller,
-		c.getByIDProvinceFn,
-	)
+	return WrapperPlural(ctx, controller, c.getByIDProvinceFn)
 }
-func (c *CityController) getByIDProvinceFn(cp *CallbackParam[*model.GetCityByIDProvinceRequest[int]]) ([]entity.City, error) {
-	id_province := ParseIntFromParamOrQuery(cp.fiberCtx, "id_province")
-	request := &model.GetCityByIDProvinceRequest[int]{IDProvince: id_province}
+func (c *CityController) getByIDProvinceFn(cp *CallbackParam[*model.GetCityByIDProvinceRequest[[]int]]) ([]entity.City, error) {
+	idProvince := new(model.GetCityByIDProvinceRequest[[]int])
+	if err := ParseRequest(cp.fiberCtx, idProvince); err != nil {
+		return nil, err
+	}
+	request := &model.GetCityByIDProvinceRequest[[]int]{IDProvince: idProvince.IDProvince}
 
 	return c.UseCase.GetByIDProvince(cp.context, request)
 }
 
-func (c *CityController) GetByIDAndIdProvince(ctx *fiber.Ctx) error {
+func (c *CityController) GetFirstByIDAndIdProvince(ctx *fiber.Ctx) error {
 	controller := NewController[entity.City, model.CityResponse, *model.GetCityByIDRequest[int]](c.CrudController.Log, c.CrudController.Mapper)
 
-	return WrapperSingular(
-		ctx,
-		controller,
-		c.getByIDAndIdProvinceFn,
-	)
+	return WrapperSingular(ctx, controller, c.getFirstByIDAndIdProvinceFn)
 }
-func (c *CityController) getByIDAndIdProvinceFn(cp *CallbackParam[*model.GetCityByIDRequest[int]]) (*entity.City, error) {
+func (c *CityController) getFirstByIDAndIdProvinceFn(cp *CallbackParam[*model.GetCityByIDRequest[int]]) (*entity.City, error) {
 	id, err := ParseId[int](cp.fiberCtx)
 	if err != nil {
 		return nil, err
 	}
 	id_province := ParseIntFromParamOrQuery(cp.fiberCtx, "id_province")
-	request := &model.GetCityByIDRequest[int]{ID: *id, IDProvince: id_province}
+	request := &model.GetCityByIDRequest[int]{GetByIDRequest: model.GetByIDRequest[int]{ID: *id}, IDProvince: id_province}
 
 	return c.UseCase.GetFirstByIDAndIDProvince(cp.context, request)
 }

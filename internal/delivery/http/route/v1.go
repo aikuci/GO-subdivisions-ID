@@ -13,7 +13,7 @@ func (c *RouteConfig) SetupV1Route() {
 	v1.Get("/provinces/:id<int>", c.ProvinceController.GetFirstByID)
 
 	v1.Get("/provinces/:id_province<int>/cities", c.CityController.GetByIdProvince)
-	v1.Get("/provinces/:id_province<int>/cities/:id<int>", c.CityController.GetByIDAndIdProvince)
+	v1.Get("/provinces/:id_province<int>/cities/:id<int>", c.CityController.GetFirstByIDAndIdProvince)
 	v1.Get("/cities", c.CityController.CrudController.List)
 	v1.Get("/cities/:id<int>", c.CityController.CrudController.GetByID)
 }
