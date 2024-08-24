@@ -26,11 +26,7 @@ func NewCrudController[TEntity any, TModel any](log *zap.Logger, useCase usecase
 func (c *CrudController[TEntity, TModel]) List(ctx *fiber.Ctx) error {
 	controller := NewController[TEntity, TModel, *model.ListRequest](c.Log, c.Mapper)
 
-	return WrapperPlural(
-		ctx,
-		controller,
-		c.listFn,
-	)
+	return WrapperPlural(ctx, controller, c.listFn)
 }
 func (c *CrudController[TEntity, TModel]) listFn(cp *CallbackParam[*model.ListRequest]) ([]TEntity, error) {
 	request := &model.ListRequest{}
@@ -41,11 +37,7 @@ func (c *CrudController[TEntity, TModel]) listFn(cp *CallbackParam[*model.ListRe
 func (c *CrudController[TEntity, TModel]) GetByID(ctx *fiber.Ctx) error {
 	controller := NewController[TEntity, TModel, *model.GetByIDRequest[int]](c.Log, c.Mapper)
 
-	return WrapperPlural(
-		ctx,
-		controller,
-		c.getByIDFn,
-	)
+	return WrapperPlural(ctx, controller, c.getByIDFn)
 }
 func (c *CrudController[TEntity, TModel]) getByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
 	id, err := ParseId[int](cp.fiberCtx)
@@ -60,11 +52,7 @@ func (c *CrudController[TEntity, TModel]) getByIDFn(cp *CallbackParam[*model.Get
 func (c *CrudController[TEntity, TModel]) GetByIDs(ctx *fiber.Ctx) error {
 	controller := NewController[TEntity, TModel, *model.GetByIDRequest[[]int]](c.Log, c.Mapper)
 
-	return WrapperPlural(
-		ctx,
-		controller,
-		c.getByIDsFn,
-	)
+	return WrapperPlural(ctx, controller, c.getByIDsFn)
 }
 func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
 	ids, err := ParseIds[[]int](cp.fiberCtx)
@@ -79,11 +67,7 @@ func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.Ge
 func (c *CrudController[TEntity, TModel]) GetFirstByID(ctx *fiber.Ctx) error {
 	controller := NewController[TEntity, TModel, *model.GetByIDRequest[int]](c.Log, c.Mapper)
 
-	return WrapperSingular(
-		ctx,
-		controller,
-		c.getFirstByIDFn,
-	)
+	return WrapperSingular(ctx, controller, c.getFirstByIDFn)
 }
 func (c *CrudController[TEntity, TModel]) getFirstByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*TEntity, error) {
 	id, err := ParseId[int](cp.fiberCtx)
