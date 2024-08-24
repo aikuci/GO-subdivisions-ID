@@ -45,6 +45,29 @@ func (uc *CityUseCase) GetFirstByID(ctx context.Context, request *model.GetByIDR
 }
 
 // Specific UseCase
+func (uc *CityUseCase) ListFindByIDAndIDProvince(ctx context.Context, request *model.ListCityByIDRequest[[]int]) ([]entity.City, error) {
+	useCase := NewUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
+
+	return WrapperPlural(ctx, useCase, uc.listFindByIDAndIDProvinceFn)
+}
+func (uc *CityUseCase) listFindByIDAndIDProvinceFn(cp *CallbackParam[*model.ListCityByIDRequest[[]int]]) ([]entity.City, error) {
+	where := map[string]interface{}{}
+	if cp.request.ID != nil {
+		where["id"] = cp.request.ID
+	}
+	if cp.request.IDProvince != nil {
+		where["id_province"] = cp.request.IDProvince
+	}
+	collections, err := uc.Repository.FindBy(cp.tx, where)
+
+	if err != nil {
+		cp.log.Warn(err.Error())
+		return nil, fiber.ErrInternalServerError
+	}
+
+	return collections, nil
+}
+
 func (uc *CityUseCase) GetFindByIDAndIDProvince(ctx context.Context, request *model.GetCityByIDRequest[[]int]) ([]entity.City, error) {
 	useCase := NewUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
 
