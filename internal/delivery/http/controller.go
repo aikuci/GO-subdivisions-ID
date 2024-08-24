@@ -70,12 +70,12 @@ func ParseId[T model.IdSingular](ctx *fiber.Ctx) (*T, error) {
 	return &id.ID, nil
 }
 
-func ParseIds[T model.IdPlural](ctx *fiber.Ctx) (*T, error) {
+func ParseIds[T model.IdPlural](ctx *fiber.Ctx) (T, error) {
 	ids := new(model.IdPluralRequest[T])
 	if err := ParseRequest(ctx, ids); err != nil {
 		return nil, err
 	}
-	return &ids.ID, nil
+	return ids.ID, nil
 }
 
 func ParseRequest(ctx *fiber.Ctx, request any) error {
