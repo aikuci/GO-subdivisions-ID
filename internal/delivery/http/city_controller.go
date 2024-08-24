@@ -51,7 +51,7 @@ func (c *CityController) getByIDAndIdProvinceFn(cp *CallbackParam[*model.GetCity
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.GetCityByIDRequest[[]int]{GetByIDRequest: model.GetByIDRequest[[]int]{ID: requestParsed.ID}, IDProvince: requestParsed.IDProvince}
+	request := &model.GetCityByIDRequest[[]int]{ID: requestParsed.ID, IDProvince: requestParsed.IDProvince}
 
 	return c.UseCase.GetFindByIDAndIDProvince(cp.context, request)
 }
@@ -67,7 +67,7 @@ func (c *CityController) getFirstByIDAndIdProvinceFn(cp *CallbackParam[*model.Ge
 		return nil, err
 	}
 	id_province := ParseIntFromParamOrQuery(cp.fiberCtx, "id_province")
-	request := &model.GetCityByIDRequest[int]{GetByIDRequest: model.GetByIDRequest[int]{ID: *id}, IDProvince: id_province}
+	request := &model.GetCityByIDRequest[int]{ID: *id, IDProvince: id_province}
 
 	return c.UseCase.GetFirstByIDAndIDProvince(cp.context, request)
 }

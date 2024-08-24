@@ -33,7 +33,7 @@ func (c *CrudController[TEntity, TModel]) listFn(cp *CallbackParam[*model.ListRe
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.ListRequest{RelationRequest: model.RelationRequest{Includes: requestParsed.Includes}}
+	request := &model.ListRequest{Includes: requestParsed.Includes}
 
 	return c.UseCase.List(cp.context, request)
 }
@@ -48,7 +48,7 @@ func (c *CrudController[TEntity, TModel]) getByIDFn(cp *CallbackParam[*model.Get
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.GetByIDRequest[int]{RelationRequest: model.RelationRequest{Includes: requestParsed.Includes}, ID: requestParsed.ID}
+	request := &model.GetByIDRequest[int]{Includes: requestParsed.Includes, ID: requestParsed.ID}
 
 	return c.UseCase.GetByID(cp.context, request)
 }
@@ -63,7 +63,7 @@ func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.Ge
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.GetByIDRequest[[]int]{RelationRequest: model.RelationRequest{Includes: requestParsed.Includes}, ID: requestParsed.ID}
+	request := &model.GetByIDRequest[[]int]{Includes: requestParsed.Includes, ID: requestParsed.ID}
 
 	return c.UseCase.GetByIDs(cp.context, request)
 }
@@ -78,7 +78,7 @@ func (c *CrudController[TEntity, TModel]) getFirstByIDFn(cp *CallbackParam[*mode
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.GetByIDRequest[int]{RelationRequest: model.RelationRequest{Includes: requestParsed.Includes}, ID: requestParsed.ID}
+	request := &model.GetByIDRequest[int]{Includes: requestParsed.Includes, ID: requestParsed.ID}
 
 	return c.UseCase.GetFirstByID(cp.context, request)
 }

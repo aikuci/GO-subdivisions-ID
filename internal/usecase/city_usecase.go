@@ -76,7 +76,7 @@ func (uc *CityUseCase) GetFindByIDAndIDProvince(ctx context.Context, request *mo
 func (uc *CityUseCase) getFindByIDAndIDProvinceFn(cp *CallbackParam[*model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
 	where := map[string]interface{}{}
 	if cp.request.ID != nil {
-		where["id"] = cp.request.GetByIDRequest.ID
+		where["id"] = cp.request.ID
 	}
 	if cp.request.IDProvince != nil {
 		where["id_province"] = cp.request.IDProvince
