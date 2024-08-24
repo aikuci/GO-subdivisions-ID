@@ -26,19 +26,19 @@ func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper map
 	}
 }
 
-func (c *CityController) GetByIdProvince(ctx *fiber.Ctx) error {
-	controller := NewController[entity.City, model.CityResponse, *model.GetCityByIDProvinceRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
+func (c *CityController) GetByIDAndIdProvince(ctx *fiber.Ctx) error {
+	controller := NewController[entity.City, model.CityResponse, *model.GetCityByIDRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
 
-	return WrapperPlural(ctx, controller, c.getByIDProvinceFn)
+	return WrapperPlural(ctx, controller, c.getByIDAndIdProvinceFn)
 }
-func (c *CityController) getByIDProvinceFn(cp *CallbackParam[*model.GetCityByIDProvinceRequest[[]int]]) ([]entity.City, error) {
-	idProvince := new(model.GetCityByIDProvinceRequest[[]int])
-	if err := ParseRequest(cp.fiberCtx, idProvince); err != nil {
+func (c *CityController) getByIDAndIdProvinceFn(cp *CallbackParam[*model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
+	requestParsed := new(model.GetCityByIDRequest[[]int])
+	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.GetCityByIDProvinceRequest[[]int]{IDProvince: idProvince.IDProvince}
+	request := &model.GetCityByIDRequest[[]int]{GetByIDRequest: model.GetByIDRequest[[]int]{ID: requestParsed.ID}, IDProvince: requestParsed.IDProvince}
 
-	return c.UseCase.GetByIDProvince(cp.context, request)
+	return c.UseCase.GetFindByIDAndIDProvince(cp.context, request)
 }
 
 func (c *CityController) GetFirstByIDAndIdProvince(ctx *fiber.Ctx) error {

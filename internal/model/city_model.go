@@ -25,9 +25,3 @@ type GetCityByIdRequest[T IdOrIds, TProvince IdOrIds] struct {
 	GetByIDRequest[T]
 	IDProvince TProvince `json:"-" params:"id_province" query:"id_province" validate:"required"`
 }
-
-// GetCityByIDProvinceRequest defines a request structure to retrieve cities by province ID only.
-// This request does not require a city ID, focusing on filtering cities based on the province ID alone.
-type GetCityByIDProvinceRequest[T IdOrIds] struct {
-	IDProvince T `json:"-" params:"id_province" query:"id_province"`
-}
