@@ -22,9 +22,10 @@ type AppOptions struct {
 
 func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
 	var app = fiber.New(fiber.Config{
-		AppName:      config.GetString("app.name"),
-		ErrorHandler: NewErrorHandler(),
-		Prefork:      config.GetBool("web.prefork"),
+		AppName:                  config.GetString("app.name"),
+		ErrorHandler:             NewErrorHandler(),
+		Prefork:                  config.GetBool("web.prefork"),
+		EnableSplittingOnParsers: true,
 	})
 
 	app.Use(requestid.New(), logger.New(logger.Config{
