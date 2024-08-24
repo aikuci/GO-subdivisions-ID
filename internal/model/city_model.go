@@ -14,7 +14,7 @@ type CityResponse struct {
 // The generic type T allows for different ID types (single or multiple).
 // Both city ID and province ID are required parameters for this request.
 type GetCityByIDRequest[T IdOrIds] struct {
-	ID         T `json:"-" validate:"required"`
+	GetByIDRequest[T]
 	IDProvince T `json:"-" params:"id_province" query:"id_province" validate:"required"`
 }
 
@@ -22,8 +22,8 @@ type GetCityByIDRequest[T IdOrIds] struct {
 // This structure allows for more flexibility with different types for city and province IDs.
 // Both city ID and province ID are required parameters.
 type GetCityByIdRequest[T IdOrIds, TProvince IdOrIds] struct {
-	Id         T         `json:"-" validate:"required"`
-	IdProvince TProvince `json:"-" params:"id_province" query:"id_province" validate:"required"`
+	GetByIDRequest[T]
+	IDProvince TProvince `json:"-" params:"id_province" query:"id_province" validate:"required"`
 }
 
 // GetCityByIDProvinceRequest defines a request structure to retrieve cities by province ID only.

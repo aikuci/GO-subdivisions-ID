@@ -19,6 +19,22 @@ func (r *CityRepository[TId, TIds]) FindByIdProvince(db *gorm.DB, id_province TI
 	return r.FindBy(db, map[string]interface{}{"id_province": id_province})
 }
 
+func (r *CityRepository[TId, TIds]) FindByIdProvinces(db *gorm.DB, id_province TIds) ([]entity.City, error) {
+	return r.FindBy(db, map[string]interface{}{"id_province": id_province})
+}
+
+func (r *CityRepository[TId, TIds]) FindByIdsAndIdProvince(db *gorm.DB, id TIds, id_province TId) ([]entity.City, error) {
+	return r.FindBy(db, map[string]interface{}{"id": id, "id_province": id_province})
+}
+
+func (r *CityRepository[TId, TIds]) FindByIdAndIdProvinces(db *gorm.DB, id TId, id_province TIds) ([]entity.City, error) {
+	return r.FindBy(db, map[string]interface{}{"id": id, "id_province": id_province})
+}
+
+func (r *CityRepository[TId, TIds]) FindByIdsAndIdProvinces(db *gorm.DB, id TIds, id_province TIds) ([]entity.City, error) {
+	return r.FindBy(db, map[string]interface{}{"id": id, "id_province": id_province})
+}
+
 func (r *CityRepository[TId, TIds]) FirstByIdAndIdProvince(db *gorm.DB, id TId, id_province TId) (*entity.City, error) {
 	return r.FirstBy(db, map[string]interface{}{"id": id, "id_province": id_province})
 }
