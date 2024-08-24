@@ -40,7 +40,11 @@ func (uc *CrudUseCase[T]) List(ctx context.Context, request *model.ListRequest) 
 	return WrapperPlural(ctx, useCase, uc.listFn)
 }
 func (uc *CrudUseCase[T]) listFn(cp *CallbackParam[*model.ListRequest]) ([]T, error) {
-	collections, err := uc.Repository.Find(cp.tx)
+	db := cp.tx
+	for _, include := range cp.request.Includes {
+		db = db.Preload(include)
+	}
+	collections, err := uc.Repository.Find(db)
 
 	if err != nil {
 		cp.log.Warn(err.Error())
@@ -56,7 +60,11 @@ func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request *model.GetByIDReq
 	return WrapperPlural(ctx, useCase, uc.getByIdFn)
 }
 func (uc *CrudUseCase[T]) getByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]T, error) {
-	collections, err := uc.Repository.FindById(cp.tx, cp.request.ID)
+	db := cp.tx
+	for _, include := range cp.request.Includes {
+		db = db.Preload(include)
+	}
+	collections, err := uc.Repository.FindById(db, cp.request.ID)
 
 	if err != nil {
 		cp.log.Warn(err.Error())
@@ -72,7 +80,11 @@ func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request *model.GetByIDRe
 	return WrapperPlural(ctx, useCase, uc.getByIdsFn)
 }
 func (uc *CrudUseCase[T]) getByIdsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]T, error) {
-	collections, err := uc.Repository.FindByIds(cp.tx, cp.request.ID)
+	db := cp.tx
+	for _, include := range cp.request.Includes {
+		db = db.Preload(include)
+	}
+	collections, err := uc.Repository.FindByIds(db, cp.request.ID)
 
 	if err != nil {
 		cp.log.Warn(err.Error())
@@ -88,8 +100,12 @@ func (uc *CrudUseCase[T]) GetFirstByID(ctx context.Context, request *model.GetBy
 	return WrapperSingular(ctx, useCase, uc.getFirstByIdFn)
 }
 func (uc *CrudUseCase[T]) getFirstByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*T, error) {
+	db := cp.tx
+	for _, include := range cp.request.Includes {
+		db = db.Preload(include)
+	}
 	id := cp.request.ID
-	collection, err := uc.Repository.FirstById(cp.tx, id)
+	collection, err := uc.Repository.FirstById(db, id)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

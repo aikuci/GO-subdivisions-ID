@@ -29,7 +29,11 @@ func (c *CrudController[TEntity, TModel]) List(ctx *fiber.Ctx) error {
 	return WrapperPlural(ctx, controller, c.listFn)
 }
 func (c *CrudController[TEntity, TModel]) listFn(cp *CallbackParam[*model.ListRequest]) ([]TEntity, error) {
-	request := &model.ListRequest{}
+	requestParsed := new(model.ListRequest)
+	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
+		return nil, err
+	}
+	request := &model.ListRequest{RelationRequest: model.RelationRequest{Includes: requestParsed.Includes}}
 
 	return c.UseCase.List(cp.context, request)
 }
@@ -40,11 +44,11 @@ func (c *CrudController[TEntity, TModel]) GetByID(ctx *fiber.Ctx) error {
 	return WrapperPlural(ctx, controller, c.getByIDFn)
 }
 func (c *CrudController[TEntity, TModel]) getByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
-	id, err := ParseId[int](cp.fiberCtx)
-	if err != nil {
+	requestParsed := new(model.GetByIDRequest[int])
+	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.GetByIDRequest[int]{ID: *id}
+	request := &model.GetByIDRequest[int]{RelationRequest: model.RelationRequest{Includes: requestParsed.Includes}, ID: requestParsed.ID}
 
 	return c.UseCase.GetByID(cp.context, request)
 }
@@ -55,11 +59,11 @@ func (c *CrudController[TEntity, TModel]) GetByIDs(ctx *fiber.Ctx) error {
 	return WrapperPlural(ctx, controller, c.getByIDsFn)
 }
 func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
-	ids, err := ParseIds[[]int](cp.fiberCtx)
-	if err != nil {
+	requestParsed := new(model.GetByIDRequest[[]int])
+	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.GetByIDRequest[[]int]{ID: ids}
+	request := &model.GetByIDRequest[[]int]{RelationRequest: model.RelationRequest{Includes: requestParsed.Includes}, ID: requestParsed.ID}
 
 	return c.UseCase.GetByIDs(cp.context, request)
 }
@@ -70,11 +74,11 @@ func (c *CrudController[TEntity, TModel]) GetFirstByID(ctx *fiber.Ctx) error {
 	return WrapperSingular(ctx, controller, c.getFirstByIDFn)
 }
 func (c *CrudController[TEntity, TModel]) getFirstByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*TEntity, error) {
-	id, err := ParseId[int](cp.fiberCtx)
-	if err != nil {
+	requestParsed := new(model.GetByIDRequest[int])
+	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
 	}
-	request := &model.GetByIDRequest[int]{ID: *id}
+	request := &model.GetByIDRequest[int]{RelationRequest: model.RelationRequest{Includes: requestParsed.Includes}, ID: requestParsed.ID}
 
 	return c.UseCase.GetFirstByID(cp.context, request)
 }
