@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/model"
+
 	"gorm.io/gorm"
 )
 
