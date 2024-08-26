@@ -10,7 +10,7 @@ func NewViper() *viper.Viper {
 	config := viper.New()
 
 	config.SetConfigName("config")
-	config.SetConfigType("json")
+	config.SetConfigType("yaml")
 	config.AddConfigPath("./../")
 	config.AddConfigPath("./")
 	err := config.ReadInConfig()

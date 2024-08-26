@@ -24,7 +24,7 @@
 
 # Env Files
 .env
-config.json
+config.yaml
 
 # Logs
 storage/log/*
