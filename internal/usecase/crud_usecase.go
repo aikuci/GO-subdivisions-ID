@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 	"github.com/aikuci/go-subdivisions-id/internal/pkg/slice"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 
-	"github.com/gobeam/stringy"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -43,12 +43,12 @@ func (uc *CrudUseCase[T]) List(ctx context.Context, request *model.ListRequest) 
 }
 func (uc *CrudUseCase[T]) listFn(cp *CallbackParam[*model.ListRequest]) ([]T, error) {
 	db := cp.tx
-	for _, include := range cp.request.Include {
-		str := stringy.New(include)
-		relation := str.PascalCase().Get()
-		if slice.Contains(cp.relations, relation) {
-			db = db.Preload(relation)
+	for _, relation := range cp.request.Include {
+		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
+		if idx == -1 {
+			return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(cp.relations["snake"], ", ")))
 		}
+		db = db.Preload(cp.relations["pascal"][idx])
 	}
 	collections, err := uc.Repository.Find(db)
 
@@ -67,12 +67,12 @@ func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request *model.GetByIDReq
 }
 func (uc *CrudUseCase[T]) getByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]T, error) {
 	db := cp.tx
-	for _, include := range cp.request.Include {
-		str := stringy.New(include)
-		relation := str.PascalCase().Get()
-		if slice.Contains(cp.relations, relation) {
-			db = db.Preload(relation)
+	for _, relation := range cp.request.Include {
+		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
+		if idx == -1 {
+			return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(cp.relations["snake"], ", ")))
 		}
+		db = db.Preload(cp.relations["pascal"][idx])
 	}
 	collections, err := uc.Repository.FindById(db, cp.request.ID)
 
@@ -91,12 +91,12 @@ func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request *model.GetByIDRe
 }
 func (uc *CrudUseCase[T]) getByIdsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]T, error) {
 	db := cp.tx
-	for _, include := range cp.request.Include {
-		str := stringy.New(include)
-		relation := str.PascalCase().Get()
-		if slice.Contains(cp.relations, relation) {
-			db = db.Preload(relation)
+	for _, relation := range cp.request.Include {
+		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
+		if idx == -1 {
+			return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(cp.relations["snake"], ", ")))
 		}
+		db = db.Preload(cp.relations["pascal"][idx])
 	}
 	collections, err := uc.Repository.FindByIds(db, cp.request.ID)
 
@@ -115,12 +115,12 @@ func (uc *CrudUseCase[T]) GetFirstByID(ctx context.Context, request *model.GetBy
 }
 func (uc *CrudUseCase[T]) getFirstByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*T, error) {
 	db := cp.tx
-	for _, include := range cp.request.Include {
-		str := stringy.New(include)
-		relation := str.PascalCase().Get()
-		if slice.Contains(cp.relations, relation) {
-			db = db.Preload(relation)
+	for _, relation := range cp.request.Include {
+		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
+		if idx == -1 {
+			return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(cp.relations["snake"], ", ")))
 		}
+		db = db.Preload(cp.relations["pascal"][idx])
 	}
 	id := cp.request.ID
 	collection, err := uc.Repository.FirstById(db, id)

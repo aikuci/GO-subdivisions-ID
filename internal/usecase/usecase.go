@@ -5,6 +5,7 @@ import (
 
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
 
+	"github.com/gobeam/stringy"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -27,11 +28,11 @@ func NewUseCase[TEntity any, TRequest any](log *zap.Logger, db *gorm.DB, request
 type CallbackParam[T any] struct {
 	tx        *gorm.DB
 	log       *zap.Logger
-	relations []string
+	relations map[string][]string
 	request   T
 }
 
-func getRelations[TEntity any](db *gorm.DB) []string {
+func getRelations[TEntity any](db *gorm.DB) map[string][]string {
 	var collections []TEntity
 	preloadDB := db.Session(&gorm.Session{
 		Initialized:              true,
@@ -40,11 +41,17 @@ func getRelations[TEntity any](db *gorm.DB) []string {
 		SkipDefaultTransaction:   true,
 		DisableNestedTransaction: true,
 	}).First(&collections)
-	var relations []string
+
+	var relations_snake []string
+	var relations_pascal []string
 	for key := range preloadDB.Statement.Schema.Relationships.Relations {
-		relations = append(relations, key)
+		relations_pascal = append(relations_pascal, key)
+
+		str := stringy.New(key)
+		relations_snake = append(relations_snake, str.SnakeCase().ToLower())
 	}
-	return relations
+
+	return map[string][]string{"pascal": relations_pascal, "snake": relations_snake}
 }
 
 func WrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TRequest], callback func(cp *CallbackParam[TRequest]) (*TEntity, error)) (*TEntity, error) {
