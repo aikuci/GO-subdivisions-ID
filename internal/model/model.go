@@ -21,11 +21,11 @@ type IdPluralRequest[T IdPlural] struct {
 
 // Request
 type ListRequest struct {
-	Includes []string `json:"includes" query:"includes"`
+	Include []string `json:"include" query:"include"`
 }
 type GetByIDRequest[T IdOrIds] struct {
-	Includes []string `json:"includes" query:"includes"`
-	ID       T        `json:"-" params:"id" query:"id" validate:"required"`
+	Include []string `json:"include" query:"include"`
+	ID      T        `json:"-" params:"id" query:"id" validate:"required"`
 }
 
 // Response

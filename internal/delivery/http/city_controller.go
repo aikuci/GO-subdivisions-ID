@@ -11,13 +11,13 @@ import (
 )
 
 type CityController struct {
-	CrudController CrudController[entity.City, model.CityResponse] // embedded
+	CrudController CrudController[entity.City, model.CityResponse, model.CityRelations] // embedded
 
 	UseCase usecase.CityUseCase
 }
 
 func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper mapper.CruderMapper[entity.City, model.CityResponse]) *CityController {
-	crudController := NewCrudController(log, useCase, mapper)
+	crudController := NewCrudController[entity.City, model.CityResponse, model.CityRelations](log, useCase, mapper)
 
 	return &CityController{
 		CrudController: *crudController,

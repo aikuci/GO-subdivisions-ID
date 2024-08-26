@@ -9,3 +9,9 @@ type ProvinceResponse struct {
 	PostalCodes pq.Int64Array  `json:"postal_codes"`
 	Cities      []CityResponse `json:"cities,omitempty"`
 }
+
+type ProvinceRelations []string
+
+func NewProvinceRelation() ProvinceRelations {
+	return ProvinceRelations{"Cities"}
+}
