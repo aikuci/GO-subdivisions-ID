@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
+	apperror "github.com/aikuci/go-subdivisions-id/internal/pkg/error"
 	"github.com/aikuci/go-subdivisions-id/internal/pkg/slice"
 
 	"github.com/gobeam/stringy"
-	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -47,7 +47,7 @@ func wrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase
 	defer tx.Rollback()
 
 	relations := getRelations[TEntity](uc.DB)
-	tx, err := addRelations(tx, relations, uc.Request)
+	tx, err := addRelations(tx, log, relations, uc.Request)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +58,9 @@ func wrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		log.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
-		return nil, fiber.ErrInternalServerError
+		errorMessage := "failed to commit transaction"
+		log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+		return nil, apperror.InternalServerError(errorMessage)
 	}
 
 	return collection, nil
@@ -72,8 +73,7 @@ func wrapperPlural[TEntity any, TRequest any](ctx context.Context, uc *UseCase[T
 	defer tx.Rollback()
 
 	relations := getRelations[TEntity](uc.DB)
-	log.Info(fmt.Sprintf("%v", relations))
-	tx, err := addRelations(tx, relations, uc.Request)
+	tx, err := addRelations(tx, log, relations, uc.Request)
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +84,9 @@ func wrapperPlural[TEntity any, TRequest any](ctx context.Context, uc *UseCase[T
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		log.Warn(err.Error(), zap.String("errorMessage", "failed to commit transaction"))
-		return nil, fiber.ErrInternalServerError
+		errorMessage := "failed to commit transaction"
+		log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+		return nil, apperror.InternalServerError(errorMessage)
 	}
 
 	return collections, nil
@@ -113,14 +114,16 @@ func getRelations[TEntity any](db *gorm.DB) *relations {
 	return &relations{pascal: relations_pascal, snake: relations_snake}
 }
 
-func addRelations(db *gorm.DB, relations *relations, request any) (*gorm.DB, error) {
+func addRelations(db *gorm.DB, log *zap.Logger, relations *relations, request any) (*gorm.DB, error) {
 	v := reflect.ValueOf(request)
 	if v.FieldByName("Include").IsValid() {
 		if include, ok := v.FieldByName("Include").Interface().([]string); ok {
 			for _, relation := range include {
 				idx := slice.ArrayIndexOf(relations.snake, relation)
 				if idx == -1 {
-					return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(relations.snake, ", ")))
+					errorMessage := fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(relations.snake, ", "))
+					log.Warn(errorMessage)
+					return nil, apperror.BadRequest(errorMessage)
 				}
 				db = db.Preload(relations.pascal[idx])
 			}

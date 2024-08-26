@@ -7,8 +7,8 @@ import (
 
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
+	apperror "github.com/aikuci/go-subdivisions-id/internal/pkg/error"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
-	"github.com/gofiber/fiber/v2"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -95,12 +95,13 @@ func (uc *CityUseCase) GetFirstByIdAndIdProvince(ctx context.Context, request mo
 
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					cp.log.Warn(err.Error(), zap.String("errorMessage", fmt.Sprintf("failed to get cities data with ID: %d and ID Province: %d", id, idProvince)))
-					return nil, fiber.ErrNotFound
+					errorMessage := fmt.Sprintf("failed to get cities data with ID: %d and ID Province: %d", id, idProvince)
+					cp.log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+					return nil, apperror.RecordNotFound(errorMessage)
 				}
 
 				cp.log.Warn(err.Error())
-				return nil, fiber.ErrInternalServerError
+				return nil, err
 			}
 
 			return collection, nil
