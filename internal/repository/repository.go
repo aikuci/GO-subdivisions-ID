@@ -7,6 +7,12 @@ import (
 
 type Repository[T any, TId model.IdSingular, TIds model.IdPlural] struct{}
 
+// TODO:
+// Refer to the GORM documentation for advanced query examples: https://gorm.io/docs/advanced_query.html#Find-To-Map
+// Issues:
+// 1. Known bug with unsupported data type `&[]`, affecting `pq.Int64Array`.
+// 2. Known issue with unsupported data type `&[]` for `[]CityResponse` when processing `provinceResponse`.
+
 // Retrieve Collections
 func (r *Repository[T, TId, TIds]) Find(db *gorm.DB) ([]T, error) {
 	var collections []T
