@@ -36,9 +36,6 @@ func (uc *DistrictUseCase) List(ctx context.Context, request model.ListRequest) 
 func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]entity.District, error) {
 	return uc.CrudUseCase.GetById(ctx, request)
 }
-func (uc *DistrictUseCase) GetByIds(ctx context.Context, request model.GetByIDRequest[[]int]) ([]entity.District, error) {
-	return uc.CrudUseCase.GetByIds(ctx, request)
-}
 func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*entity.District, error) {
 	return uc.CrudUseCase.GetFirstById(ctx, request)
 }

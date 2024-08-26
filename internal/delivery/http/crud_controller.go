@@ -47,18 +47,6 @@ func (c *CrudController[TEntity, TModel]) GetById(ctx *fiber.Ctx) error {
 	)
 }
 
-func (c *CrudController[TEntity, TModel]) GetByIds(ctx *fiber.Ctx) error {
-	controller := newController[TEntity, TModel, model.GetByIDRequest[[]int]](c.Log, c.Mapper)
-
-	return wrapperPlural(
-		ctx,
-		controller,
-		func(cp *CallbackParam[model.GetByIDRequest[[]int]]) ([]TEntity, error) {
-			return c.UseCase.GetByIds(cp.context, cp.request)
-		},
-	)
-}
-
 func (c *CrudController[TEntity, TModel]) GetFirstById(ctx *fiber.Ctx) error {
 	controller := newController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, c.Mapper)
 

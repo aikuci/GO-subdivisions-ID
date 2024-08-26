@@ -16,7 +16,6 @@ import (
 type CruderUseCase[T any] interface {
 	List(ctx context.Context, request model.ListRequest) ([]T, error)
 	GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error)
-	GetByIds(ctx context.Context, request model.GetByIDRequest[[]int]) ([]T, error)
 	GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, error)
 }
 
@@ -54,18 +53,6 @@ func (uc *CrudUseCase[T]) GetById(ctx context.Context, request model.GetByIDRequ
 		useCase,
 		func(cp *CallbackParam[model.GetByIDRequest[int]]) ([]T, error) {
 			return uc.Repository.FindById(cp.tx, cp.request.ID)
-		},
-	)
-}
-
-func (uc *CrudUseCase[T]) GetByIds(ctx context.Context, request model.GetByIDRequest[[]int]) ([]T, error) {
-	useCase := newUseCase[T](uc.Log, uc.DB, request)
-
-	return wrapperPlural(
-		ctx,
-		useCase,
-		func(cp *CallbackParam[model.GetByIDRequest[[]int]]) ([]T, error) {
-			return uc.Repository.FindByIds(cp.tx, cp.request.ID)
 		},
 	)
 }
