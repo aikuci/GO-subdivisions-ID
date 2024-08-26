@@ -11,53 +11,51 @@ import (
 )
 
 type CityController struct {
-	CrudController CrudController[entity.City, model.CityResponse] // embedded
-
+	Log     *zap.Logger
 	UseCase usecase.CityUseCase
+	Mapper  mapper.CruderMapper[entity.City, model.CityResponse]
 }
 
 func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper mapper.CruderMapper[entity.City, model.CityResponse]) *CityController {
-	crudController := NewCrudController(log, useCase, mapper)
-
 	return &CityController{
-		CrudController: *crudController,
-
+		Log:     log,
 		UseCase: *useCase,
+		Mapper:  mapper,
 	}
 }
 
-func (c *CityController) ListByIdAndIdProvince(ctx *fiber.Ctx) error {
-	controller := newController[entity.City, model.CityResponse, model.ListCityByIDRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
+func (c *CityController) List(ctx *fiber.Ctx) error {
+	controller := newController[entity.City, model.CityResponse, model.ListCityByIDRequest[[]int]](c.Log, c.Mapper)
 
 	return wrapperPlural(
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.ListCityByIDRequest[[]int]]) ([]entity.City, error) {
-			return c.UseCase.ListFindByIdAndIdProvince(cp.context, cp.request)
+			return c.UseCase.List(cp.context, cp.request)
 		},
 	)
 }
 
-func (c *CityController) GetByIdAndIdProvince(ctx *fiber.Ctx) error {
-	controller := newController[entity.City, model.CityResponse, model.GetCityByIDRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
+func (c *CityController) GetById(ctx *fiber.Ctx) error {
+	controller := newController[entity.City, model.CityResponse, model.GetCityByIDRequest[[]int]](c.Log, c.Mapper)
 
 	return wrapperPlural(
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
-			return c.UseCase.GetFindByIdAndIdProvince(cp.context, cp.request)
+			return c.UseCase.GetById(cp.context, cp.request)
 		},
 	)
 }
 
-func (c *CityController) GetFirstByIdAndIdProvince(ctx *fiber.Ctx) error {
-	controller := newController[entity.City, model.CityResponse, model.GetCityByIDRequest[int]](c.CrudController.Log, c.CrudController.Mapper)
+func (c *CityController) GetFirstById(ctx *fiber.Ctx) error {
+	controller := newController[entity.City, model.CityResponse, model.GetCityByIDRequest[int]](c.Log, c.Mapper)
 
 	return wrapperSingular(
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetCityByIDRequest[int]]) (*entity.City, error) {
-			return c.UseCase.GetFirstByIdAndIdProvince(cp.context, cp.request)
+			return c.UseCase.GetFirstById(cp.context, cp.request)
 		},
 	)
 }

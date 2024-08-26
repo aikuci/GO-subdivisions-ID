@@ -15,34 +15,21 @@ import (
 )
 
 type CityUseCase struct {
-	CrudUseCase CrudUseCase[entity.City] // embedded
-
+	Log        *zap.Logger
+	DB         *gorm.DB
 	Repository repository.CityRepository[int, []int]
 }
 
-func NewCityUseCase(logger *zap.Logger, db *gorm.DB, repository *repository.CityRepository[int, []int]) *CityUseCase {
-	crudUseCase := NewCrudUseCase(logger, db, repository)
-
+func NewCityUseCase(log *zap.Logger, db *gorm.DB, repository *repository.CityRepository[int, []int]) *CityUseCase {
 	return &CityUseCase{
-		CrudUseCase: *crudUseCase,
-
+		Log:        log,
+		DB:         db,
 		Repository: *repository,
 	}
 }
 
-func (uc *CityUseCase) List(ctx context.Context, request model.ListRequest) ([]entity.City, error) {
-	return uc.CrudUseCase.List(ctx, request)
-}
-func (uc *CityUseCase) GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]entity.City, error) {
-	return uc.CrudUseCase.GetById(ctx, request)
-}
-func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*entity.City, error) {
-	return uc.CrudUseCase.GetFirstById(ctx, request)
-}
-
-// Specific UseCase
-func (uc *CityUseCase) ListFindByIdAndIdProvince(ctx context.Context, request model.ListCityByIDRequest[[]int]) ([]entity.City, error) {
-	useCase := newUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
+func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDRequest[[]int]) ([]entity.City, error) {
+	useCase := newUseCase[entity.City](uc.Log, uc.DB, request)
 
 	return wrapperPlural(
 		ctx,
@@ -59,9 +46,8 @@ func (uc *CityUseCase) ListFindByIdAndIdProvince(ctx context.Context, request mo
 		},
 	)
 }
-
-func (uc *CityUseCase) GetFindByIdAndIdProvince(ctx context.Context, request model.GetCityByIDRequest[[]int]) ([]entity.City, error) {
-	useCase := newUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
+func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDRequest[[]int]) ([]entity.City, error) {
+	useCase := newUseCase[entity.City](uc.Log, uc.DB, request)
 
 	return wrapperPlural(
 		ctx,
@@ -78,9 +64,8 @@ func (uc *CityUseCase) GetFindByIdAndIdProvince(ctx context.Context, request mod
 		},
 	)
 }
-
-func (uc *CityUseCase) GetFirstByIdAndIdProvince(ctx context.Context, request model.GetCityByIDRequest[int]) (*entity.City, error) {
-	useCase := newUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
+func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetCityByIDRequest[int]) (*entity.City, error) {
+	useCase := newUseCase[entity.City](uc.Log, uc.DB, request)
 
 	return wrapperSingular(
 		ctx,
