@@ -12,53 +12,53 @@ import (
 )
 
 type Controller[TEntity any, TModel any, TRequest any] struct {
-	Log     *zap.Logger
-	Mapper  mapper.CruderMapper[TEntity, TModel]
-	Request TRequest
+	Log      *zap.Logger
+	FiberCtx *fiber.Ctx
+	Mapper   mapper.CruderMapper[TEntity, TModel]
+	Request  TRequest
 }
 
-func newController[TEntity any, TModel any, TRequest any](log *zap.Logger, mapper mapper.CruderMapper[TEntity, TModel]) *Controller[TEntity, TModel, TRequest] {
+func newController[TEntity any, TModel any, TRequest any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper mapper.CruderMapper[TEntity, TModel]) *Controller[TEntity, TModel, TRequest] {
 	return &Controller[TEntity, TModel, TRequest]{
-		Log:    log,
-		Mapper: mapper,
+		Log:      log,
+		FiberCtx: fiberCtx,
+		Mapper:   mapper,
 	}
 }
 
-type CallbackParam[T any] struct {
-	context  context.Context
-	log      *zap.Logger
-	fiberCtx *fiber.Ctx
-	request  T
+type CallbackArgs[T any] struct {
+	context context.Context
+	request T
 }
 
-func wrapperSingular[TEntity any, TModel any, TRequest any](ctx *fiber.Ctx, c *Controller[TEntity, TModel, TRequest], callback func(cp *CallbackParam[TRequest]) (*TEntity, error)) error {
-	context := requestid.SetContext(ctx.UserContext(), ctx)
+func wrapperSingular[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) (*TEntity, error)) error {
+	context := requestid.SetContext(c.FiberCtx.UserContext(), c.FiberCtx)
 	log := c.Log.With(zap.String("requestid", requestid.FromContext(context)))
 
 	requestParsed := new(TRequest)
-	if err := parseRequest(ctx, requestParsed); err != nil {
+	if err := parseRequest(c.FiberCtx, requestParsed); err != nil {
 		return err
 	}
 
-	collection, err := callback(&CallbackParam[TRequest]{context: context, log: log, fiberCtx: ctx, request: *requestParsed})
+	collection, err := callback(&CallbackArgs[TRequest]{context: context, request: *requestParsed})
 	if err != nil {
 		log.Warn(err.Error())
 		return err
 	}
 
-	return ctx.JSON(model.WebResponse[*TModel]{Data: c.Mapper.ModelToResponse(collection)})
+	return c.FiberCtx.JSON(model.WebResponse[*TModel]{Data: c.Mapper.ModelToResponse(collection)})
 }
 
-func wrapperPlural[TEntity any, TModel any, TRequest any](ctx *fiber.Ctx, c *Controller[TEntity, TModel, TRequest], callback func(cp *CallbackParam[TRequest]) ([]TEntity, error)) error {
-	context := requestid.SetContext(ctx.UserContext(), ctx)
+func wrapperPlural[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) ([]TEntity, error)) error {
+	context := requestid.SetContext(c.FiberCtx.UserContext(), c.FiberCtx)
 	log := c.Log.With(zap.String("requestid", requestid.FromContext(context)))
 
 	requestParsed := new(TRequest)
-	if err := parseRequest(ctx, requestParsed); err != nil {
+	if err := parseRequest(c.FiberCtx, requestParsed); err != nil {
 		return err
 	}
 
-	collections, err := callback(&CallbackParam[TRequest]{context: context, log: log, fiberCtx: ctx, request: *requestParsed})
+	collections, err := callback(&CallbackArgs[TRequest]{context: context, request: *requestParsed})
 	if err != nil {
 		log.Warn(err.Error())
 		return err
@@ -69,7 +69,7 @@ func wrapperPlural[TEntity any, TModel any, TRequest any](ctx *fiber.Ctx, c *Con
 		responses[i] = *c.Mapper.ModelToResponse(&collection)
 	}
 
-	return ctx.JSON(model.WebResponse[[]TModel]{Data: responses})
+	return c.FiberCtx.JSON(model.WebResponse[[]TModel]{Data: responses})
 }
 
 func parseRequest(ctx *fiber.Ctx, request any) error {

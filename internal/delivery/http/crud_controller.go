@@ -24,37 +24,28 @@ func NewCrudController[TEntity any, TModel any](log *zap.Logger, useCase usecase
 }
 
 func (c *CrudController[TEntity, TModel]) List(ctx *fiber.Ctx) error {
-	controller := newController[TEntity, TModel, model.ListRequest](c.Log, c.Mapper)
-
 	return wrapperPlural(
-		ctx,
-		controller,
-		func(cp *CallbackParam[model.ListRequest]) ([]TEntity, error) {
-			return c.UseCase.List(cp.context, cp.request)
+		newController[TEntity, TModel, model.ListRequest](c.Log, ctx, c.Mapper),
+		func(ca *CallbackArgs[model.ListRequest]) ([]TEntity, error) {
+			return c.UseCase.List(ca.context, ca.request)
 		},
 	)
 }
 
 func (c *CrudController[TEntity, TModel]) GetById(ctx *fiber.Ctx) error {
-	controller := newController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, c.Mapper)
-
 	return wrapperPlural(
-		ctx,
-		controller,
-		func(cp *CallbackParam[model.GetByIDRequest[int]]) ([]TEntity, error) {
-			return c.UseCase.GetById(cp.context, cp.request)
+		newController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, ctx, c.Mapper),
+		func(ca *CallbackArgs[model.GetByIDRequest[int]]) ([]TEntity, error) {
+			return c.UseCase.GetById(ca.context, ca.request)
 		},
 	)
 }
 
 func (c *CrudController[TEntity, TModel]) GetFirstById(ctx *fiber.Ctx) error {
-	controller := newController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, c.Mapper)
-
 	return wrapperSingular(
-		ctx,
-		controller,
-		func(cp *CallbackParam[model.GetByIDRequest[int]]) (*TEntity, error) {
-			return c.UseCase.GetFirstById(cp.context, cp.request)
+		newController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, ctx, c.Mapper),
+		func(ca *CallbackArgs[model.GetByIDRequest[int]]) (*TEntity, error) {
+			return c.UseCase.GetFirstById(ca.context, ca.request)
 		},
 	)
 }

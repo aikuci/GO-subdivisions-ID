@@ -25,37 +25,29 @@ func NewDistrictController(log *zap.Logger, useCase *usecase.DistrictUseCase, ma
 }
 
 func (c *DistrictController) List(ctx *fiber.Ctx) error {
-	controller := newController[entity.District, model.DistrictResponse, model.ListDistrictByIDRequest[[]int]](c.Log, c.Mapper)
-
 	return wrapperPlural(
-		ctx,
-		controller,
-		func(cp *CallbackParam[model.ListDistrictByIDRequest[[]int]]) ([]entity.District, error) {
-			return c.UseCase.List(cp.context, cp.request)
+		newController[entity.District, model.DistrictResponse, model.ListDistrictByIDRequest[[]int]](c.Log, ctx, c.Mapper),
+		func(ca *CallbackArgs[model.ListDistrictByIDRequest[[]int]]) ([]entity.District, error) {
+			return c.UseCase.List(ca.context, ca.request)
 		},
 	)
 }
 
 func (c *DistrictController) GetById(ctx *fiber.Ctx) error {
-	controller := newController[entity.District, model.DistrictResponse, model.GetDistrictByIDRequest[[]int]](c.Log, c.Mapper)
 
 	return wrapperPlural(
-		ctx,
-		controller,
-		func(cp *CallbackParam[model.GetDistrictByIDRequest[[]int]]) ([]entity.District, error) {
-			return c.UseCase.GetById(cp.context, cp.request)
+		newController[entity.District, model.DistrictResponse, model.GetDistrictByIDRequest[[]int]](c.Log, ctx, c.Mapper),
+		func(ca *CallbackArgs[model.GetDistrictByIDRequest[[]int]]) ([]entity.District, error) {
+			return c.UseCase.GetById(ca.context, ca.request)
 		},
 	)
 }
 
 func (c *DistrictController) GetFirstById(ctx *fiber.Ctx) error {
-	controller := newController[entity.District, model.DistrictResponse, model.GetDistrictByIDRequest[int]](c.Log, c.Mapper)
-
 	return wrapperSingular(
-		ctx,
-		controller,
-		func(cp *CallbackParam[model.GetDistrictByIDRequest[int]]) (*entity.District, error) {
-			return c.UseCase.GetFirstById(cp.context, cp.request)
+		newController[entity.District, model.DistrictResponse, model.GetDistrictByIDRequest[int]](c.Log, ctx, c.Mapper),
+		func(ca *CallbackArgs[model.GetDistrictByIDRequest[int]]) (*entity.District, error) {
+			return c.UseCase.GetFirstById(ca.context, ca.request)
 		},
 	)
 }

@@ -29,67 +29,58 @@ func NewDistrictUseCase(log *zap.Logger, db *gorm.DB, repository *repository.Dis
 }
 
 func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictByIDRequest[[]int]) ([]entity.District, error) {
-	useCase := newUseCase[entity.District](uc.Log, uc.DB, request)
-
 	return wrapperPlural(
-		ctx,
-		useCase,
-		func(cp *CallbackParam[model.ListDistrictByIDRequest[[]int]]) ([]entity.District, error) {
+		newUseCase[entity.District](ctx, uc.Log, uc.DB, request),
+		func(ca *CallbackArgs[model.ListDistrictByIDRequest[[]int]]) ([]entity.District, error) {
 			where := map[string]interface{}{}
-			if cp.request.ID != nil {
-				where["id"] = cp.request.ID
+			if ca.request.ID != nil {
+				where["id"] = ca.request.ID
 			}
-			if cp.request.IDCity != nil {
-				where["id_city"] = cp.request.IDCity
+			if ca.request.IDCity != nil {
+				where["id_city"] = ca.request.IDCity
 			}
-			if cp.request.IDProvince != nil {
-				where["id_province"] = cp.request.IDProvince
+			if ca.request.IDProvince != nil {
+				where["id_province"] = ca.request.IDProvince
 			}
-			return uc.Repository.FindBy(cp.tx, where)
+			return uc.Repository.FindBy(ca.tx, where)
 		},
 	)
 }
 func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistrictByIDRequest[[]int]) ([]entity.District, error) {
-	useCase := newUseCase[entity.District](uc.Log, uc.DB, request)
-
 	return wrapperPlural(
-		ctx,
-		useCase,
-		func(cp *CallbackParam[model.GetDistrictByIDRequest[[]int]]) ([]entity.District, error) {
+		newUseCase[entity.District](ctx, uc.Log, uc.DB, request),
+		func(ca *CallbackArgs[model.GetDistrictByIDRequest[[]int]]) ([]entity.District, error) {
 			where := map[string]interface{}{}
-			if cp.request.ID != nil {
-				where["id"] = cp.request.ID
+			if ca.request.ID != nil {
+				where["id"] = ca.request.ID
 			}
-			if cp.request.IDCity != nil {
-				where["id_city"] = cp.request.IDCity
+			if ca.request.IDCity != nil {
+				where["id_city"] = ca.request.IDCity
 			}
-			if cp.request.IDProvince != nil {
-				where["id_province"] = cp.request.IDProvince
+			if ca.request.IDProvince != nil {
+				where["id_province"] = ca.request.IDProvince
 			}
-			return uc.Repository.FindBy(cp.tx, where)
+			return uc.Repository.FindBy(ca.tx, where)
 		},
 	)
 }
 func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetDistrictByIDRequest[int]) (*entity.District, error) {
-	useCase := newUseCase[entity.District](uc.Log, uc.DB, request)
-
 	return wrapperSingular(
-		ctx,
-		useCase,
-		func(cp *CallbackParam[model.GetDistrictByIDRequest[int]]) (*entity.District, error) {
-			id := cp.request.ID
-			idProvince := cp.request.IDProvince
-			idCity := cp.request.IDCity
-			collection, err := uc.Repository.FirstByIdAndIdCityAndIdProvince(cp.tx, id, idCity, idProvince)
+		newUseCase[entity.District](ctx, uc.Log, uc.DB, request),
+		func(ca *CallbackArgs[model.GetDistrictByIDRequest[int]]) (*entity.District, error) {
+			id := ca.request.ID
+			idProvince := ca.request.IDProvince
+			idCity := ca.request.IDCity
+			collection, err := uc.Repository.FirstByIdAndIdCityAndIdProvince(ca.tx, id, idCity, idProvince)
 
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					errorMessage := fmt.Sprintf("failed to get cities data with ID: %d, ID City: %v and ID Province: %d", id, idCity, idProvince)
-					cp.log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+					ca.log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
 					return nil, apperror.RecordNotFound(errorMessage)
 				}
 
-				cp.log.Warn(err.Error())
+				ca.log.Warn(err.Error())
 				return nil, err
 			}
 

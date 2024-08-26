@@ -34,48 +34,39 @@ func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository repository.C
 }
 
 func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) ([]T, error) {
-	useCase := newUseCase[T](uc.Log, uc.DB, request)
-
 	return wrapperPlural(
-		ctx,
-		useCase,
-		func(cp *CallbackParam[model.ListRequest]) ([]T, error) {
-			return uc.Repository.Find(cp.tx)
+		newUseCase[T](ctx, uc.Log, uc.DB, request),
+		func(ca *CallbackArgs[model.ListRequest]) ([]T, error) {
+			return uc.Repository.Find(ca.tx)
 		},
 	)
 }
 
 func (uc *CrudUseCase[T]) GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error) {
-	useCase := newUseCase[T](uc.Log, uc.DB, request)
-
 	return wrapperPlural(
-		ctx,
-		useCase,
-		func(cp *CallbackParam[model.GetByIDRequest[int]]) ([]T, error) {
-			return uc.Repository.FindById(cp.tx, cp.request.ID)
+		newUseCase[T](ctx, uc.Log, uc.DB, request),
+		func(ca *CallbackArgs[model.GetByIDRequest[int]]) ([]T, error) {
+			return uc.Repository.FindById(ca.tx, ca.request.ID)
 		},
 	)
 }
 
 func (uc *CrudUseCase[T]) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, error) {
-	useCase := newUseCase[T](uc.Log, uc.DB, request)
-
 	return wrapperSingular(
-		ctx,
-		useCase,
-		func(cp *CallbackParam[model.GetByIDRequest[int]]) (*T, error) {
-			db := cp.tx
-			id := cp.request.ID
+		newUseCase[T](ctx, uc.Log, uc.DB, request),
+		func(ca *CallbackArgs[model.GetByIDRequest[int]]) (*T, error) {
+			db := ca.tx
+			id := ca.request.ID
 			collection, err := uc.Repository.FirstById(db, id)
 
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					errorMessage := fmt.Sprintf("failed to get data with ID: %d", id)
-					cp.log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+					ca.log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
 					return nil, apperror.RecordNotFound(errorMessage)
 				}
 
-				cp.log.Warn(err.Error())
+				ca.log.Warn(err.Error())
 				return nil, err
 			}
 
