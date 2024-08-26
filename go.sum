@@ -18,6 +18,8 @@ github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJn
 github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
 github.com/go-playground/validator/v10 v10.22.0 h1:k6HsTZ0sTnROkhS//R0O+55JgM8C4Bx7ia+JlgcnOao=
 github.com/go-playground/validator/v10 v10.22.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
+github.com/gobeam/stringy v0.0.7 h1:TD8SfhedUoiANhW88JlJqfrMsihskIRpU/VTsHGnAps=
+github.com/gobeam/stringy v0.0.7/go.mod h1:W3620X9dJHf2FSZF5fRnWekHcHQjwmCz8ZQ2d1qloqE=
 github.com/gofiber/fiber/v2 v2.52.5 h1:tWoP1MJQjGEe4GB5TUGOi7P2E0ZMMRx5ZTG4rT+yGMo=
 github.com/gofiber/fiber/v2 v2.52.5/go.mod h1:KEOE+cXMhXG0zHc9d8+E38hoX+ZN7bhOtgeF2oT6jrQ=
 github.com/gofiber/storage/sqlite3/v2 v2.1.1 h1:drmm7ghsnZINzmdpN12l3IUHd3xRu964hu1+47uekbw=
