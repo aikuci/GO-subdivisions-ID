@@ -7,6 +7,8 @@ import (
 	"runtime/debug"
 	"time"
 
+	apperror "github.com/aikuci/go-subdivisions-id/internal/pkg/error"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -49,8 +51,12 @@ func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
 func NewErrorHandler() fiber.ErrorHandler {
 	return func(ctx *fiber.Ctx, err error) error {
 		code := fiber.StatusInternalServerError
+
 		if e, ok := err.(*fiber.Error); ok {
 			code = e.Code
+		}
+		if e, ok := err.(*apperror.CustomErrorResponse); ok {
+			code = e.HTTPCode
 		}
 
 		return ctx.Status(code).JSON(fiber.Map{
