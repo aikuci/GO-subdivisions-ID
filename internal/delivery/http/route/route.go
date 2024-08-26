@@ -16,6 +16,7 @@ type RouteConfig struct {
 	DB                 *gorm.DB
 	ProvinceController *http.CrudController[entity.Province, model.ProvinceResponse]
 	CityController     *http.CityController
+	DistrictController *http.DistrictController
 }
 
 func (c *RouteConfig) Setup() {

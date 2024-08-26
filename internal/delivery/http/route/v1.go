@@ -16,4 +16,9 @@ func (c *RouteConfig) SetupV1Route() {
 	v1.Get("/cities/:id<int>", c.CityController.GetByIdAndIdProvince)
 	v1.Get("/provinces/:id_province<int>/cities", c.CityController.GetByIdAndIdProvince)
 	v1.Get("/provinces/:id_province<int>/cities/:id<int>", c.CityController.GetFirstByIdAndIdProvince)
+
+	v1.Get("/districts", c.DistrictController.ListByIdAndIdCityAndIdProvince)
+	v1.Get("/districts/:id<int>", c.DistrictController.GetByIdAndIdCityAndIdProvince)
+	v1.Get("/provinces/:id_province<int>/cities/:id_city<int>/districts", c.DistrictController.GetByIdAndIdCityAndIdProvince)
+	v1.Get("/provinces/:id_province<int>/cities/:id_city<int>/districts/:id<int>", c.DistrictController.GetFirstByIdAndIdCityAndIdProvince)
 }
