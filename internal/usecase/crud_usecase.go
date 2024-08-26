@@ -16,10 +16,10 @@ import (
 )
 
 type CruderUseCase[T any] interface {
-	List(ctx context.Context, request *model.ListRequest) ([]T, error)
-	GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]T, error)
-	GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]T, error)
-	GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error)
+	List(ctx context.Context, request model.ListRequest) ([]T, error)
+	GetByID(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error)
+	GetByIDs(ctx context.Context, request model.GetByIDRequest[[]int]) ([]T, error)
+	GetFirstByID(ctx context.Context, request model.GetByIDRequest[int]) (*T, error)
 }
 
 type CrudUseCase[T any] struct {
@@ -36,12 +36,12 @@ func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository repository.C
 	}
 }
 
-func (uc *CrudUseCase[T]) List(ctx context.Context, request *model.ListRequest) ([]T, error) {
+func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) ([]T, error) {
 	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(ctx, useCase, uc.listFn)
 }
-func (uc *CrudUseCase[T]) listFn(cp *CallbackParam[*model.ListRequest]) ([]T, error) {
+func (uc *CrudUseCase[T]) listFn(cp *CallbackParam[model.ListRequest]) ([]T, error) {
 	db := cp.tx
 	for _, relation := range cp.request.Include {
 		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
@@ -60,12 +60,12 @@ func (uc *CrudUseCase[T]) listFn(cp *CallbackParam[*model.ListRequest]) ([]T, er
 	return collections, nil
 }
 
-func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]T, error) {
+func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error) {
 	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(ctx, useCase, uc.getByIdFn)
 }
-func (uc *CrudUseCase[T]) getByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]T, error) {
+func (uc *CrudUseCase[T]) getByIdFn(cp *CallbackParam[model.GetByIDRequest[int]]) ([]T, error) {
 	db := cp.tx
 	for _, relation := range cp.request.Include {
 		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
@@ -84,12 +84,12 @@ func (uc *CrudUseCase[T]) getByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]
 	return collections, nil
 }
 
-func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]T, error) {
+func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request model.GetByIDRequest[[]int]) ([]T, error) {
 	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(ctx, useCase, uc.getByIdsFn)
 }
-func (uc *CrudUseCase[T]) getByIdsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]T, error) {
+func (uc *CrudUseCase[T]) getByIdsFn(cp *CallbackParam[model.GetByIDRequest[[]int]]) ([]T, error) {
 	db := cp.tx
 	for _, relation := range cp.request.Include {
 		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
@@ -108,12 +108,12 @@ func (uc *CrudUseCase[T]) getByIdsFn(cp *CallbackParam[*model.GetByIDRequest[[]i
 	return collections, nil
 }
 
-func (uc *CrudUseCase[T]) GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error) {
+func (uc *CrudUseCase[T]) GetFirstByID(ctx context.Context, request model.GetByIDRequest[int]) (*T, error) {
 	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperSingular(ctx, useCase, uc.getFirstByIdFn)
 }
-func (uc *CrudUseCase[T]) getFirstByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*T, error) {
+func (uc *CrudUseCase[T]) getFirstByIdFn(cp *CallbackParam[model.GetByIDRequest[int]]) (*T, error) {
 	db := cp.tx
 	for _, relation := range cp.request.Include {
 		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
