@@ -9,13 +9,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type CrudController[TEntity any, TModel any, TRelation []string] struct {
+type CrudController[TEntity any, TModel any, TRelation ~[]string] struct {
 	Log     *zap.Logger
 	UseCase usecase.CruderUseCase[TEntity, TRelation]
 	Mapper  mapper.CruderMapper[TEntity, TModel]
 }
 
-func NewCrudController[TEntity any, TModel any, TRelation []string](log *zap.Logger, useCase usecase.CruderUseCase[TEntity, TRelation], mapper mapper.CruderMapper[TEntity, TModel]) *CrudController[TEntity, TModel, TRelation] {
+func NewCrudController[TEntity any, TModel any, TRelation ~[]string](log *zap.Logger, useCase usecase.CruderUseCase[TEntity, TRelation], mapper mapper.CruderMapper[TEntity, TModel]) *CrudController[TEntity, TModel, TRelation] {
 	return &CrudController[TEntity, TModel, TRelation]{
 		Log:     log,
 		UseCase: useCase,

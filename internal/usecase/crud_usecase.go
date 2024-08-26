@@ -21,14 +21,14 @@ type CruderUseCase[T any, TRelation any] interface {
 	GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error)
 }
 
-type CrudUseCase[T any, TRelation []string] struct {
+type CrudUseCase[T any, TRelation ~[]string] struct {
 	Log        *zap.Logger
 	DB         *gorm.DB
 	Repository repository.CruderRepository[T]
 	Relations  TRelation
 }
 
-func NewCrudUseCase[T any, TRelation []string](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T], relations TRelation) *CrudUseCase[T, TRelation] {
+func NewCrudUseCase[T any, TRelation ~[]string](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T], relations TRelation) *CrudUseCase[T, TRelation] {
 	return &CrudUseCase[T, TRelation]{
 		Log:        log,
 		DB:         db,
