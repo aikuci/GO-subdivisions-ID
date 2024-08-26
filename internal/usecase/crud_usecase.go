@@ -14,39 +14,36 @@ import (
 	"gorm.io/gorm"
 )
 
-type CruderUseCase[T any, TRelation any] interface {
+type CruderUseCase[T any] interface {
 	List(ctx context.Context, request *model.ListRequest) ([]T, error)
 	GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]T, error)
 	GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]T, error)
 	GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error)
 }
 
-type CrudUseCase[T any, TRelation ~[]string] struct {
+type CrudUseCase[T any] struct {
 	Log        *zap.Logger
 	DB         *gorm.DB
 	Repository repository.CruderRepository[T]
-	Relations  TRelation
 }
 
-func NewCrudUseCase[T any, TRelation ~[]string](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T], relations TRelation) *CrudUseCase[T, TRelation] {
-	return &CrudUseCase[T, TRelation]{
+func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T]) *CrudUseCase[T] {
+	return &CrudUseCase[T]{
 		Log:        log,
 		DB:         db,
 		Repository: repository,
-		Relations:  relations,
 	}
 }
 
-func (uc *CrudUseCase[T, TRelation]) List(ctx context.Context, request *model.ListRequest) ([]T, error) {
+func (uc *CrudUseCase[T]) List(ctx context.Context, request *model.ListRequest) ([]T, error) {
 	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(ctx, useCase, uc.listFn)
 }
-func (uc *CrudUseCase[T, TRelation]) listFn(cp *CallbackParam[*model.ListRequest]) ([]T, error) {
+func (uc *CrudUseCase[T]) listFn(cp *CallbackParam[*model.ListRequest]) ([]T, error) {
 	db := cp.tx
-
 	for _, include := range cp.request.Include {
-		if slice.Contains(uc.Relations, include) {
+		if slice.Contains(cp.relations, include) {
 			db = db.Preload(include)
 		}
 	}
@@ -60,15 +57,15 @@ func (uc *CrudUseCase[T, TRelation]) listFn(cp *CallbackParam[*model.ListRequest
 	return collections, nil
 }
 
-func (uc *CrudUseCase[T, TRelation]) GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]T, error) {
+func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request *model.GetByIDRequest[int]) ([]T, error) {
 	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(ctx, useCase, uc.getByIdFn)
 }
-func (uc *CrudUseCase[T, TRelation]) getByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]T, error) {
+func (uc *CrudUseCase[T]) getByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]T, error) {
 	db := cp.tx
 	for _, include := range cp.request.Include {
-		if slice.Contains(uc.Relations, include) {
+		if slice.Contains(cp.relations, include) {
 			db = db.Preload(include)
 		}
 	}
@@ -82,15 +79,15 @@ func (uc *CrudUseCase[T, TRelation]) getByIdFn(cp *CallbackParam[*model.GetByIDR
 	return collections, nil
 }
 
-func (uc *CrudUseCase[T, TRelation]) GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]T, error) {
+func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request *model.GetByIDRequest[[]int]) ([]T, error) {
 	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperPlural(ctx, useCase, uc.getByIdsFn)
 }
-func (uc *CrudUseCase[T, TRelation]) getByIdsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]T, error) {
+func (uc *CrudUseCase[T]) getByIdsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]T, error) {
 	db := cp.tx
 	for _, include := range cp.request.Include {
-		if slice.Contains(uc.Relations, include) {
+		if slice.Contains(cp.relations, include) {
 			db = db.Preload(include)
 		}
 	}
@@ -104,15 +101,15 @@ func (uc *CrudUseCase[T, TRelation]) getByIdsFn(cp *CallbackParam[*model.GetByID
 	return collections, nil
 }
 
-func (uc *CrudUseCase[T, TRelation]) GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error) {
+func (uc *CrudUseCase[T]) GetFirstByID(ctx context.Context, request *model.GetByIDRequest[int]) (*T, error) {
 	useCase := NewUseCase[T](uc.Log, uc.DB, request)
 
 	return WrapperSingular(ctx, useCase, uc.getFirstByIdFn)
 }
-func (uc *CrudUseCase[T, TRelation]) getFirstByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*T, error) {
+func (uc *CrudUseCase[T]) getFirstByIdFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*T, error) {
 	db := cp.tx
 	for _, include := range cp.request.Include {
-		if slice.Contains(uc.Relations, include) {
+		if slice.Contains(cp.relations, include) {
 			db = db.Preload(include)
 		}
 	}

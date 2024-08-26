@@ -16,20 +16,18 @@ import (
 )
 
 type CityUseCase struct {
-	CrudUseCase CrudUseCase[entity.City, model.CityRelations] // embedded
+	CrudUseCase CrudUseCase[entity.City] // embedded
 
 	Repository repository.CityRepository[int, []int]
-	Relations  model.CityRelations
 }
 
-func NewCityUseCase(logger *zap.Logger, db *gorm.DB, repository *repository.CityRepository[int, []int], mapper mapper.CruderMapper[entity.City, model.CityResponse], relations model.CityRelations) *CityUseCase {
-	crudUseCase := NewCrudUseCase(logger, db, repository, relations)
+func NewCityUseCase(logger *zap.Logger, db *gorm.DB, repository *repository.CityRepository[int, []int], mapper mapper.CruderMapper[entity.City, model.CityResponse]) *CityUseCase {
+	crudUseCase := NewCrudUseCase(logger, db, repository)
 
 	return &CityUseCase{
 		CrudUseCase: *crudUseCase,
 
 		Repository: *repository,
-		Relations:  relations,
 	}
 }
 

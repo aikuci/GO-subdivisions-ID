@@ -10,12 +10,6 @@ type CityResponse struct {
 	PostalCodes pq.Int64Array `json:"postal_codes"`
 }
 
-type CityRelations []string
-
-func NewCityRelation() CityRelations {
-	return CityRelations{"Province"}
-}
-
 // ListCityByIDRequest defines a request structure for listing cities based on their ID.
 type ListCityByIDRequest[T IdOrIds] struct {
 	Include    []string `json:"include" query:"include"`

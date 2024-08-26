@@ -25,9 +25,10 @@ func NewUseCase[TEntity any, TRequest any](log *zap.Logger, db *gorm.DB, request
 }
 
 type CallbackParam[T any] struct {
-	tx      *gorm.DB
-	log     *zap.Logger
-	request T
+	tx        *gorm.DB
+	log       *zap.Logger
+	relations []string
+	request   T
 }
 
 func WrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TRequest], callback func(cp *CallbackParam[TRequest]) (*TEntity, error)) (*TEntity, error) {
@@ -36,7 +37,20 @@ func WrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	collection, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
+	var collections []TEntity
+	preloadDB := uc.DB.Session(&gorm.Session{
+		Initialized:              true,
+		DryRun:                   true,
+		SkipHooks:                true,
+		SkipDefaultTransaction:   true,
+		DisableNestedTransaction: true,
+	}).First(&collections)
+	var relations []string
+	for key := range preloadDB.Statement.Schema.Relationships.Relations {
+		relations = append(relations, key)
+	}
+
+	collection, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, relations: relations, request: uc.Request})
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +69,20 @@ func WrapperPlural[TEntity any, TRequest any](ctx context.Context, uc *UseCase[T
 	tx := uc.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	collections, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
+	var collections []TEntity
+	preloadDB := uc.DB.Session(&gorm.Session{
+		Initialized:              true,
+		DryRun:                   true,
+		SkipHooks:                true,
+		SkipDefaultTransaction:   true,
+		DisableNestedTransaction: true,
+	}).First(&collections)
+	var relations []string
+	for key := range preloadDB.Statement.Schema.Relationships.Relations {
+		relations = append(relations, key)
+	}
+
+	collections, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, relations: relations, request: uc.Request})
 	if err != nil {
 		return nil, err
 	}

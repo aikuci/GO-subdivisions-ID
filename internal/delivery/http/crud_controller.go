@@ -9,26 +9,26 @@ import (
 	"go.uber.org/zap"
 )
 
-type CrudController[TEntity any, TModel any, TRelation ~[]string] struct {
+type CrudController[TEntity any, TModel any] struct {
 	Log     *zap.Logger
-	UseCase usecase.CruderUseCase[TEntity, TRelation]
+	UseCase usecase.CruderUseCase[TEntity]
 	Mapper  mapper.CruderMapper[TEntity, TModel]
 }
 
-func NewCrudController[TEntity any, TModel any, TRelation ~[]string](log *zap.Logger, useCase usecase.CruderUseCase[TEntity, TRelation], mapper mapper.CruderMapper[TEntity, TModel]) *CrudController[TEntity, TModel, TRelation] {
-	return &CrudController[TEntity, TModel, TRelation]{
+func NewCrudController[TEntity any, TModel any](log *zap.Logger, useCase usecase.CruderUseCase[TEntity], mapper mapper.CruderMapper[TEntity, TModel]) *CrudController[TEntity, TModel] {
+	return &CrudController[TEntity, TModel]{
 		Log:     log,
 		UseCase: useCase,
 		Mapper:  mapper,
 	}
 }
 
-func (c *CrudController[TEntity, TModel, TRelation]) List(ctx *fiber.Ctx) error {
+func (c *CrudController[TEntity, TModel]) List(ctx *fiber.Ctx) error {
 	controller := NewController[TEntity, TModel, *model.ListRequest](c.Log, c.Mapper)
 
 	return WrapperPlural(ctx, controller, c.listFn)
 }
-func (c *CrudController[TEntity, TModel, TRelation]) listFn(cp *CallbackParam[*model.ListRequest]) ([]TEntity, error) {
+func (c *CrudController[TEntity, TModel]) listFn(cp *CallbackParam[*model.ListRequest]) ([]TEntity, error) {
 	requestParsed := new(model.ListRequest)
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
@@ -38,12 +38,12 @@ func (c *CrudController[TEntity, TModel, TRelation]) listFn(cp *CallbackParam[*m
 	return c.UseCase.List(cp.context, request)
 }
 
-func (c *CrudController[TEntity, TModel, TRelation]) GetByID(ctx *fiber.Ctx) error {
+func (c *CrudController[TEntity, TModel]) GetByID(ctx *fiber.Ctx) error {
 	controller := NewController[TEntity, TModel, *model.GetByIDRequest[int]](c.Log, c.Mapper)
 
 	return WrapperPlural(ctx, controller, c.getByIDFn)
 }
-func (c *CrudController[TEntity, TModel, TRelation]) getByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
+func (c *CrudController[TEntity, TModel]) getByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
 	requestParsed := new(model.GetByIDRequest[int])
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
@@ -53,12 +53,12 @@ func (c *CrudController[TEntity, TModel, TRelation]) getByIDFn(cp *CallbackParam
 	return c.UseCase.GetByID(cp.context, request)
 }
 
-func (c *CrudController[TEntity, TModel, TRelation]) GetByIDs(ctx *fiber.Ctx) error {
+func (c *CrudController[TEntity, TModel]) GetByIDs(ctx *fiber.Ctx) error {
 	controller := NewController[TEntity, TModel, *model.GetByIDRequest[[]int]](c.Log, c.Mapper)
 
 	return WrapperPlural(ctx, controller, c.getByIDsFn)
 }
-func (c *CrudController[TEntity, TModel, TRelation]) getByIDsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
+func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
 	requestParsed := new(model.GetByIDRequest[[]int])
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
@@ -68,12 +68,12 @@ func (c *CrudController[TEntity, TModel, TRelation]) getByIDsFn(cp *CallbackPara
 	return c.UseCase.GetByIDs(cp.context, request)
 }
 
-func (c *CrudController[TEntity, TModel, TRelation]) GetFirstByID(ctx *fiber.Ctx) error {
+func (c *CrudController[TEntity, TModel]) GetFirstByID(ctx *fiber.Ctx) error {
 	controller := NewController[TEntity, TModel, *model.GetByIDRequest[int]](c.Log, c.Mapper)
 
 	return WrapperSingular(ctx, controller, c.getFirstByIDFn)
 }
-func (c *CrudController[TEntity, TModel, TRelation]) getFirstByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*TEntity, error) {
+func (c *CrudController[TEntity, TModel]) getFirstByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) (*TEntity, error) {
 	requestParsed := new(model.GetByIDRequest[int])
 	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
 		return nil, err
