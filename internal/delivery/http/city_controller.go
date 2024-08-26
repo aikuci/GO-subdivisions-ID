@@ -27,46 +27,55 @@ func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper map
 }
 
 func (c *CityController) ListByIdAndIdProvince(ctx *fiber.Ctx) error {
-	controller := NewController[entity.City, model.CityResponse, model.ListCityByIDRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
+	controller := newController[entity.City, model.CityResponse, model.ListCityByIDRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
 
-	return WrapperPlural(ctx, controller, c.listByIdAndIdProvinceFn)
-}
-func (c *CityController) listByIdAndIdProvinceFn(cp *CallbackParam[model.ListCityByIDRequest[[]int]]) ([]entity.City, error) {
-	requestParsed := new(model.ListCityByIDRequest[[]int])
-	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
-		return nil, err
-	}
-	request := model.ListCityByIDRequest[[]int]{Include: requestParsed.Include, ID: requestParsed.ID, IDProvince: requestParsed.IDProvince}
+	return wrapperPlural(
+		ctx,
+		controller,
+		func(cp *CallbackParam[model.ListCityByIDRequest[[]int]]) ([]entity.City, error) {
+			requestParsed := new(model.ListCityByIDRequest[[]int])
+			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
+				return nil, err
+			}
+			request := model.ListCityByIDRequest[[]int]{Include: requestParsed.Include, ID: requestParsed.ID, IDProvince: requestParsed.IDProvince}
 
-	return c.UseCase.ListFindByIDAndIDProvince(cp.context, request)
+			return c.UseCase.ListFindByIDAndIDProvince(cp.context, request)
+		},
+	)
 }
 
 func (c *CityController) GetByIDAndIdProvince(ctx *fiber.Ctx) error {
-	controller := NewController[entity.City, model.CityResponse, model.GetCityByIDRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
+	controller := newController[entity.City, model.CityResponse, model.GetCityByIDRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
 
-	return WrapperPlural(ctx, controller, c.getByIDAndIdProvinceFn)
-}
-func (c *CityController) getByIDAndIdProvinceFn(cp *CallbackParam[model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
-	requestParsed := new(model.GetCityByIDRequest[[]int])
-	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
-		return nil, err
-	}
-	request := model.GetCityByIDRequest[[]int]{ID: requestParsed.ID, IDProvince: requestParsed.IDProvince, Include: requestParsed.Include}
+	return wrapperPlural(
+		ctx,
+		controller,
+		func(cp *CallbackParam[model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
+			requestParsed := new(model.GetCityByIDRequest[[]int])
+			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
+				return nil, err
+			}
+			request := model.GetCityByIDRequest[[]int]{ID: requestParsed.ID, IDProvince: requestParsed.IDProvince, Include: requestParsed.Include}
 
-	return c.UseCase.GetFindByIDAndIDProvince(cp.context, request)
+			return c.UseCase.GetFindByIDAndIDProvince(cp.context, request)
+		},
+	)
 }
 
 func (c *CityController) GetFirstByIDAndIdProvince(ctx *fiber.Ctx) error {
-	controller := NewController[entity.City, model.CityResponse, model.GetCityByIDRequest[int]](c.CrudController.Log, c.CrudController.Mapper)
+	controller := newController[entity.City, model.CityResponse, model.GetCityByIDRequest[int]](c.CrudController.Log, c.CrudController.Mapper)
 
-	return WrapperSingular(ctx, controller, c.getFirstByIDAndIdProvinceFn)
-}
-func (c *CityController) getFirstByIDAndIdProvinceFn(cp *CallbackParam[model.GetCityByIDRequest[int]]) (*entity.City, error) {
-	requestParsed := new(model.GetCityByIDRequest[int])
-	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
-		return nil, err
-	}
-	request := model.GetCityByIDRequest[int]{ID: requestParsed.ID, IDProvince: requestParsed.IDProvince, Include: requestParsed.Include}
+	return wrapperSingular(
+		ctx,
+		controller,
+		func(cp *CallbackParam[model.GetCityByIDRequest[int]]) (*entity.City, error) {
+			requestParsed := new(model.GetCityByIDRequest[int])
+			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
+				return nil, err
+			}
+			request := model.GetCityByIDRequest[int]{ID: requestParsed.ID, IDProvince: requestParsed.IDProvince, Include: requestParsed.Include}
 
-	return c.UseCase.GetFirstByIDAndIDProvince(cp.context, request)
+			return c.UseCase.GetFirstByIDAndIDProvince(cp.context, request)
+		},
+	)
 }

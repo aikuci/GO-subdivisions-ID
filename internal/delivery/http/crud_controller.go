@@ -24,61 +24,73 @@ func NewCrudController[TEntity any, TModel any](log *zap.Logger, useCase usecase
 }
 
 func (c *CrudController[TEntity, TModel]) List(ctx *fiber.Ctx) error {
-	controller := NewController[TEntity, TModel, *model.ListRequest](c.Log, c.Mapper)
+	controller := newController[TEntity, TModel, *model.ListRequest](c.Log, c.Mapper)
 
-	return WrapperPlural(ctx, controller, c.listFn)
-}
-func (c *CrudController[TEntity, TModel]) listFn(cp *CallbackParam[*model.ListRequest]) ([]TEntity, error) {
-	requestParsed := new(model.ListRequest)
-	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
-		return nil, err
-	}
-	request := model.ListRequest{Include: requestParsed.Include}
+	return wrapperPlural(
+		ctx,
+		controller,
+		func(cp *CallbackParam[*model.ListRequest]) ([]TEntity, error) {
+			requestParsed := new(model.ListRequest)
+			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
+				return nil, err
+			}
+			request := model.ListRequest{Include: requestParsed.Include}
 
-	return c.UseCase.List(cp.context, request)
+			return c.UseCase.List(cp.context, request)
+		},
+	)
 }
 
 func (c *CrudController[TEntity, TModel]) GetByID(ctx *fiber.Ctx) error {
-	controller := NewController[TEntity, TModel, *model.GetByIDRequest[int]](c.Log, c.Mapper)
+	controller := newController[TEntity, TModel, *model.GetByIDRequest[int]](c.Log, c.Mapper)
 
-	return WrapperPlural(ctx, controller, c.getByIDFn)
-}
-func (c *CrudController[TEntity, TModel]) getByIDFn(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
-	requestParsed := new(model.GetByIDRequest[int])
-	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
-		return nil, err
-	}
-	request := model.GetByIDRequest[int]{Include: requestParsed.Include, ID: requestParsed.ID}
+	return wrapperPlural(
+		ctx,
+		controller,
+		func(cp *CallbackParam[*model.GetByIDRequest[int]]) ([]TEntity, error) {
+			requestParsed := new(model.GetByIDRequest[int])
+			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
+				return nil, err
+			}
+			request := model.GetByIDRequest[int]{Include: requestParsed.Include, ID: requestParsed.ID}
 
-	return c.UseCase.GetByID(cp.context, request)
+			return c.UseCase.GetByID(cp.context, request)
+		},
+	)
 }
 
 func (c *CrudController[TEntity, TModel]) GetByIDs(ctx *fiber.Ctx) error {
-	controller := NewController[TEntity, TModel, *model.GetByIDRequest[[]int]](c.Log, c.Mapper)
+	controller := newController[TEntity, TModel, *model.GetByIDRequest[[]int]](c.Log, c.Mapper)
 
-	return WrapperPlural(ctx, controller, c.getByIDsFn)
-}
-func (c *CrudController[TEntity, TModel]) getByIDsFn(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
-	requestParsed := new(model.GetByIDRequest[[]int])
-	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
-		return nil, err
-	}
-	request := model.GetByIDRequest[[]int]{Include: requestParsed.Include, ID: requestParsed.ID}
+	return wrapperPlural(
+		ctx,
+		controller,
+		func(cp *CallbackParam[*model.GetByIDRequest[[]int]]) ([]TEntity, error) {
+			requestParsed := new(model.GetByIDRequest[[]int])
+			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
+				return nil, err
+			}
+			request := model.GetByIDRequest[[]int]{Include: requestParsed.Include, ID: requestParsed.ID}
 
-	return c.UseCase.GetByIDs(cp.context, request)
+			return c.UseCase.GetByIDs(cp.context, request)
+		},
+	)
 }
 
 func (c *CrudController[TEntity, TModel]) GetFirstByID(ctx *fiber.Ctx) error {
-	controller := NewController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, c.Mapper)
+	controller := newController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, c.Mapper)
 
-	return WrapperSingular(ctx, controller, c.getFirstByIDFn)
-}
-func (c *CrudController[TEntity, TModel]) getFirstByIDFn(cp *CallbackParam[model.GetByIDRequest[int]]) (*TEntity, error) {
-	requestParsed := new(model.GetByIDRequest[int])
-	if err := ParseRequest(cp.fiberCtx, requestParsed); err != nil {
-		return nil, err
-	}
-	request := model.GetByIDRequest[int]{Include: requestParsed.Include, ID: requestParsed.ID}
+	return wrapperSingular(
+		ctx,
+		controller,
+		func(cp *CallbackParam[model.GetByIDRequest[int]]) (*TEntity, error) {
+			requestParsed := new(model.GetByIDRequest[int])
+			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
+				return nil, err
+			}
+			request := model.GetByIDRequest[int]{Include: requestParsed.Include, ID: requestParsed.ID}
 
-	return c.UseCase.GetFirstByID(cp.context, request)
+			return c.UseCase.GetFirstByID(cp.context, request)
+		},
+	)
 }

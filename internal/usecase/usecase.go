@@ -21,7 +21,7 @@ type UseCase[TEntity any, TRequest any] struct {
 	Request TRequest
 }
 
-func NewUseCase[TEntity any, TRequest any](log *zap.Logger, db *gorm.DB, request TRequest) *UseCase[TEntity, TRequest] {
+func newUseCase[TEntity any, TRequest any](log *zap.Logger, db *gorm.DB, request TRequest) *UseCase[TEntity, TRequest] {
 	return &UseCase[TEntity, TRequest]{
 		Log:     log,
 		DB:      db,
@@ -78,7 +78,7 @@ func addRelations(db *gorm.DB, relations *relations, request any) (*gorm.DB, err
 	return db, nil
 }
 
-func WrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TRequest], callback func(cp *CallbackParam[TRequest]) (*TEntity, error)) (*TEntity, error) {
+func wrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TRequest], fc func(cp *CallbackParam[TRequest]) (*TEntity, error)) (*TEntity, error) {
 	log := uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
 
 	tx := uc.DB.WithContext(ctx).Begin()
@@ -90,7 +90,7 @@ func WrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase
 		return nil, err
 	}
 
-	collection, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
+	collection, err := fc(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func WrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase
 	return collection, nil
 }
 
-func WrapperPlural[TEntity any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TRequest], callback func(cp *CallbackParam[TRequest]) ([]TEntity, error)) ([]TEntity, error) {
+func wrapperPlural[TEntity any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TRequest], fc func(cp *CallbackParam[TRequest]) ([]TEntity, error)) ([]TEntity, error) {
 	log := uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
 
 	tx := uc.DB.WithContext(ctx).Begin()
@@ -116,7 +116,7 @@ func WrapperPlural[TEntity any, TRequest any](ctx context.Context, uc *UseCase[T
 		return nil, err
 	}
 
-	collections, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
+	collections, err := fc(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
 	if err != nil {
 		return nil, err
 	}
