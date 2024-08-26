@@ -2,8 +2,12 @@ package usecase
 
 import (
 	"context"
+	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
+	"github.com/aikuci/go-subdivisions-id/internal/pkg/slice"
 
 	"github.com/gobeam/stringy"
 	"github.com/gofiber/fiber/v2"
@@ -25,14 +29,18 @@ func NewUseCase[TEntity any, TRequest any](log *zap.Logger, db *gorm.DB, request
 	}
 }
 
-type CallbackParam[T any] struct {
-	tx        *gorm.DB
-	log       *zap.Logger
-	relations map[string][]string
-	request   T
+type relations struct {
+	pascal []string
+	snake  []string
 }
 
-func getRelations[TEntity any](db *gorm.DB) map[string][]string {
+type CallbackParam[T any] struct {
+	tx      *gorm.DB
+	log     *zap.Logger
+	request T
+}
+
+func getRelations[TEntity any](db *gorm.DB) *relations {
 	var collections []TEntity
 	preloadDB := db.Session(&gorm.Session{
 		Initialized:              true,
@@ -51,7 +59,23 @@ func getRelations[TEntity any](db *gorm.DB) map[string][]string {
 		relations_snake = append(relations_snake, str.SnakeCase().ToLower())
 	}
 
-	return map[string][]string{"pascal": relations_pascal, "snake": relations_snake}
+	return &relations{pascal: relations_pascal, snake: relations_snake}
+}
+
+func addRelations(db *gorm.DB, relations *relations, request any) (*gorm.DB, error) {
+	v := reflect.ValueOf(request)
+	if v.FieldByName("Include").IsValid() {
+		if include, ok := v.FieldByName("Include").Interface().([]string); ok {
+			for _, relation := range include {
+				idx := slice.ArrayIndexOf(relations.snake, relation)
+				if idx == -1 {
+					return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(relations.snake, ", ")))
+				}
+				db = db.Preload(relations.pascal[idx])
+			}
+		}
+	}
+	return db, nil
 }
 
 func WrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TRequest], callback func(cp *CallbackParam[TRequest]) (*TEntity, error)) (*TEntity, error) {
@@ -61,8 +85,12 @@ func WrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase
 	defer tx.Rollback()
 
 	relations := getRelations[TEntity](uc.DB)
+	tx, err := addRelations(tx, relations, uc.Request)
+	if err != nil {
+		return nil, err
+	}
 
-	collection, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, relations: relations, request: uc.Request})
+	collection, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +110,13 @@ func WrapperPlural[TEntity any, TRequest any](ctx context.Context, uc *UseCase[T
 	defer tx.Rollback()
 
 	relations := getRelations[TEntity](uc.DB)
+	log.Info(fmt.Sprintf("%v", relations))
+	tx, err := addRelations(tx, relations, uc.Request)
+	if err != nil {
+		return nil, err
+	}
 
-	collections, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, relations: relations, request: uc.Request})
+	collections, err := callback(&CallbackParam[TRequest]{tx: tx, log: log, request: uc.Request})
 	if err != nil {
 		return nil, err
 	}

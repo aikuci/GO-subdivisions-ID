@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/aikuci/go-subdivisions-id/internal/model"
-	"github.com/aikuci/go-subdivisions-id/internal/pkg/slice"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 
 	"github.com/gofiber/fiber/v2"
@@ -43,13 +41,6 @@ func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) (
 }
 func (uc *CrudUseCase[T]) listFn(cp *CallbackParam[model.ListRequest]) ([]T, error) {
 	db := cp.tx
-	for _, relation := range cp.request.Include {
-		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
-		if idx == -1 {
-			return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(cp.relations["snake"], ", ")))
-		}
-		db = db.Preload(cp.relations["pascal"][idx])
-	}
 	collections, err := uc.Repository.Find(db)
 
 	if err != nil {
@@ -67,13 +58,6 @@ func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request model.GetByIDRequ
 }
 func (uc *CrudUseCase[T]) getByIdFn(cp *CallbackParam[model.GetByIDRequest[int]]) ([]T, error) {
 	db := cp.tx
-	for _, relation := range cp.request.Include {
-		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
-		if idx == -1 {
-			return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(cp.relations["snake"], ", ")))
-		}
-		db = db.Preload(cp.relations["pascal"][idx])
-	}
 	collections, err := uc.Repository.FindById(db, cp.request.ID)
 
 	if err != nil {
@@ -91,13 +75,6 @@ func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request model.GetByIDReq
 }
 func (uc *CrudUseCase[T]) getByIdsFn(cp *CallbackParam[model.GetByIDRequest[[]int]]) ([]T, error) {
 	db := cp.tx
-	for _, relation := range cp.request.Include {
-		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
-		if idx == -1 {
-			return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(cp.relations["snake"], ", ")))
-		}
-		db = db.Preload(cp.relations["pascal"][idx])
-	}
 	collections, err := uc.Repository.FindByIds(db, cp.request.ID)
 
 	if err != nil {
@@ -115,13 +92,6 @@ func (uc *CrudUseCase[T]) GetFirstByID(ctx context.Context, request model.GetByI
 }
 func (uc *CrudUseCase[T]) getFirstByIdFn(cp *CallbackParam[model.GetByIDRequest[int]]) (*T, error) {
 	db := cp.tx
-	for _, relation := range cp.request.Include {
-		idx := slice.ArrayIndexOf(cp.relations["snake"], relation)
-		if idx == -1 {
-			return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(cp.relations["snake"], ", ")))
-		}
-		db = db.Preload(cp.relations["pascal"][idx])
-	}
 	id := cp.request.ID
 	collection, err := uc.Repository.FirstById(db, id)
 
