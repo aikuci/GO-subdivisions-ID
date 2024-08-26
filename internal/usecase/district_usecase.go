@@ -15,34 +15,21 @@ import (
 )
 
 type DistrictUseCase struct {
-	CrudUseCase CrudUseCase[entity.District] // embedded
-
+	Log        *zap.Logger
+	DB         *gorm.DB
 	Repository repository.DistrictRepository[int, []int]
 }
 
-func NewDistrictUseCase(logger *zap.Logger, db *gorm.DB, repository *repository.DistrictRepository[int, []int]) *DistrictUseCase {
-	crudUseCase := NewCrudUseCase(logger, db, repository)
-
+func NewDistrictUseCase(log *zap.Logger, db *gorm.DB, repository *repository.DistrictRepository[int, []int]) *DistrictUseCase {
 	return &DistrictUseCase{
-		CrudUseCase: *crudUseCase,
-
+		Log:        log,
+		DB:         db,
 		Repository: *repository,
 	}
 }
 
-func (uc *DistrictUseCase) List(ctx context.Context, request model.ListRequest) ([]entity.District, error) {
-	return uc.CrudUseCase.List(ctx, request)
-}
-func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]entity.District, error) {
-	return uc.CrudUseCase.GetById(ctx, request)
-}
-func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*entity.District, error) {
-	return uc.CrudUseCase.GetFirstById(ctx, request)
-}
-
-// Specific UseCase
-func (uc *DistrictUseCase) ListFindByIdAndIdCityAndIdProvince(ctx context.Context, request model.ListDistrictByIDRequest[[]int]) ([]entity.District, error) {
-	useCase := newUseCase[entity.District](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
+func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictByIDRequest[[]int]) ([]entity.District, error) {
+	useCase := newUseCase[entity.District](uc.Log, uc.DB, request)
 
 	return wrapperPlural(
 		ctx,
@@ -62,9 +49,8 @@ func (uc *DistrictUseCase) ListFindByIdAndIdCityAndIdProvince(ctx context.Contex
 		},
 	)
 }
-
-func (uc *DistrictUseCase) GetFindByIdAndIdCityAndIdProvince(ctx context.Context, request model.GetDistrictByIDRequest[[]int]) ([]entity.District, error) {
-	useCase := newUseCase[entity.District](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
+func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistrictByIDRequest[[]int]) ([]entity.District, error) {
+	useCase := newUseCase[entity.District](uc.Log, uc.DB, request)
 
 	return wrapperPlural(
 		ctx,
@@ -84,9 +70,8 @@ func (uc *DistrictUseCase) GetFindByIdAndIdCityAndIdProvince(ctx context.Context
 		},
 	)
 }
-
-func (uc *DistrictUseCase) GetFirstByIdAndIdCityAndIdProvince(ctx context.Context, request model.GetDistrictByIDRequest[int]) (*entity.District, error) {
-	useCase := newUseCase[entity.District](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
+func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetDistrictByIDRequest[int]) (*entity.District, error) {
+	useCase := newUseCase[entity.District](uc.Log, uc.DB, request)
 
 	return wrapperSingular(
 		ctx,
