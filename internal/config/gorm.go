@@ -28,12 +28,19 @@ func NewDatabase(viper *viper.Viper, zapLog *zap.Logger) *gorm.DB {
 		}),
 	}
 
-	dbType := viper.GetString("database.type")
-	switch dbType {
+	dbDialect := viper.GetString("database.dialect")
+	dbDsn := viper.GetString("database.dsn")
+	switch dbDialect {
 	case "pg":
-		db, err = postgreSQLConnection(viper, gormConfig)
-	case "sqlite":
-		db, err = sqliteConnection(viper, gormConfig)
+		if dbDsn == "" {
+			dbDsn = "postgresql://postgres:postgres@localhost:5432"
+		}
+		db, err = gorm.Open(postgres.Open(dbDsn), gormConfig)
+	default:
+		if dbDsn == "" {
+			dbDsn = "db/gorm.db"
+		}
+		db, err = gorm.Open(sqlite.Open(dbDsn), gormConfig)
 	}
 	if err != nil {
 		zapLog.Fatal("failed to connect database:", zap.Error(err))
@@ -52,16 +59,6 @@ func NewDatabase(viper *viper.Viper, zapLog *zap.Logger) *gorm.DB {
 	connection.SetConnMaxLifetime(time.Second * time.Duration(maxLifeTimeConnection))
 
 	return db
-}
-
-func postgreSQLConnection(viper *viper.Viper, gormConfig *gorm.Config) (db *gorm.DB, err error) {
-	url := viper.GetString("database.pg.url")
-	return gorm.Open(postgres.Open(url), gormConfig)
-}
-
-func sqliteConnection(viper *viper.Viper, gormConfig *gorm.Config) (db *gorm.DB, err error) {
-	dbFile := viper.GetString("database.sqlite.file")
-	return gorm.Open(sqlite.Open(dbFile), gormConfig)
 }
 
 type zapLogWriter struct {
