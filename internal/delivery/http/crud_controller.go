@@ -35,38 +35,38 @@ func (c *CrudController[TEntity, TModel]) List(ctx *fiber.Ctx) error {
 	)
 }
 
-func (c *CrudController[TEntity, TModel]) GetByID(ctx *fiber.Ctx) error {
+func (c *CrudController[TEntity, TModel]) GetById(ctx *fiber.Ctx) error {
 	controller := newController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, c.Mapper)
 
 	return wrapperPlural(
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetByIDRequest[int]]) ([]TEntity, error) {
-			return c.UseCase.GetByID(cp.context, cp.request)
+			return c.UseCase.GetById(cp.context, cp.request)
 		},
 	)
 }
 
-func (c *CrudController[TEntity, TModel]) GetByIDs(ctx *fiber.Ctx) error {
+func (c *CrudController[TEntity, TModel]) GetByIds(ctx *fiber.Ctx) error {
 	controller := newController[TEntity, TModel, model.GetByIDRequest[[]int]](c.Log, c.Mapper)
 
 	return wrapperPlural(
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetByIDRequest[[]int]]) ([]TEntity, error) {
-			return c.UseCase.GetByIDs(cp.context, cp.request)
+			return c.UseCase.GetByIds(cp.context, cp.request)
 		},
 	)
 }
 
-func (c *CrudController[TEntity, TModel]) GetFirstByID(ctx *fiber.Ctx) error {
+func (c *CrudController[TEntity, TModel]) GetFirstById(ctx *fiber.Ctx) error {
 	controller := newController[TEntity, TModel, model.GetByIDRequest[int]](c.Log, c.Mapper)
 
 	return wrapperSingular(
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetByIDRequest[int]]) (*TEntity, error) {
-			return c.UseCase.GetFirstByID(cp.context, cp.request)
+			return c.UseCase.GetFirstById(cp.context, cp.request)
 		},
 	)
 }

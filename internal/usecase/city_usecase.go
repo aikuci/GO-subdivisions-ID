@@ -7,7 +7,6 @@ import (
 
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
-	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 	"github.com/gofiber/fiber/v2"
 
@@ -21,7 +20,7 @@ type CityUseCase struct {
 	Repository repository.CityRepository[int, []int]
 }
 
-func NewCityUseCase(logger *zap.Logger, db *gorm.DB, repository *repository.CityRepository[int, []int], mapper mapper.CruderMapper[entity.City, model.CityResponse]) *CityUseCase {
+func NewCityUseCase(logger *zap.Logger, db *gorm.DB, repository *repository.CityRepository[int, []int]) *CityUseCase {
 	crudUseCase := NewCrudUseCase(logger, db, repository)
 
 	return &CityUseCase{
@@ -34,18 +33,18 @@ func NewCityUseCase(logger *zap.Logger, db *gorm.DB, repository *repository.City
 func (uc *CityUseCase) List(ctx context.Context, request model.ListRequest) ([]entity.City, error) {
 	return uc.CrudUseCase.List(ctx, request)
 }
-func (uc *CityUseCase) GetByID(ctx context.Context, request model.GetByIDRequest[int]) ([]entity.City, error) {
-	return uc.CrudUseCase.GetByID(ctx, request)
+func (uc *CityUseCase) GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]entity.City, error) {
+	return uc.CrudUseCase.GetById(ctx, request)
 }
-func (uc *CityUseCase) GetByIDs(ctx context.Context, request model.GetByIDRequest[[]int]) ([]entity.City, error) {
-	return uc.CrudUseCase.GetByIDs(ctx, request)
+func (uc *CityUseCase) GetByIds(ctx context.Context, request model.GetByIDRequest[[]int]) ([]entity.City, error) {
+	return uc.CrudUseCase.GetByIds(ctx, request)
 }
-func (uc *CityUseCase) GetFirstByID(ctx context.Context, request model.GetByIDRequest[int]) (*entity.City, error) {
-	return uc.CrudUseCase.GetFirstByID(ctx, request)
+func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*entity.City, error) {
+	return uc.CrudUseCase.GetFirstById(ctx, request)
 }
 
 // Specific UseCase
-func (uc *CityUseCase) ListFindByIDAndIDProvince(ctx context.Context, request model.ListCityByIDRequest[[]int]) ([]entity.City, error) {
+func (uc *CityUseCase) ListFindByIdAndIdProvince(ctx context.Context, request model.ListCityByIDRequest[[]int]) ([]entity.City, error) {
 	useCase := newUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
 
 	return wrapperPlural(
@@ -64,7 +63,7 @@ func (uc *CityUseCase) ListFindByIDAndIDProvince(ctx context.Context, request mo
 	)
 }
 
-func (uc *CityUseCase) GetFindByIDAndIDProvince(ctx context.Context, request model.GetCityByIDRequest[[]int]) ([]entity.City, error) {
+func (uc *CityUseCase) GetFindByIdAndIdProvince(ctx context.Context, request model.GetCityByIDRequest[[]int]) ([]entity.City, error) {
 	useCase := newUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
 
 	return wrapperPlural(
@@ -83,7 +82,7 @@ func (uc *CityUseCase) GetFindByIDAndIDProvince(ctx context.Context, request mod
 	)
 }
 
-func (uc *CityUseCase) GetFirstByIDAndIDProvince(ctx context.Context, request model.GetCityByIDRequest[int]) (*entity.City, error) {
+func (uc *CityUseCase) GetFirstByIdAndIdProvince(ctx context.Context, request model.GetCityByIDRequest[int]) (*entity.City, error) {
 	useCase := newUseCase[entity.City](uc.CrudUseCase.Log, uc.CrudUseCase.DB, request)
 
 	return wrapperSingular(

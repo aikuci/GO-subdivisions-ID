@@ -30,7 +30,7 @@ func Bootstrap(config *BootstrapConfig) {
 
 	// setup use cases
 	provinceUseCase := usecase.NewCrudUseCase(config.Log, config.DB, provinceRepository)
-	cityUseCase := usecase.NewCityUseCase(config.Log, config.DB, cityRepository, mapper.NewCityMapper())
+	cityUseCase := usecase.NewCityUseCase(config.Log, config.DB, cityRepository)
 
 	// setup controllers
 	provinceController := http.NewCrudController(config.Log, provinceUseCase, mapper.NewProvinceMapper())

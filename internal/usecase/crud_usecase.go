@@ -15,9 +15,9 @@ import (
 
 type CruderUseCase[T any] interface {
 	List(ctx context.Context, request model.ListRequest) ([]T, error)
-	GetByID(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error)
-	GetByIDs(ctx context.Context, request model.GetByIDRequest[[]int]) ([]T, error)
-	GetFirstByID(ctx context.Context, request model.GetByIDRequest[int]) (*T, error)
+	GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error)
+	GetByIds(ctx context.Context, request model.GetByIDRequest[[]int]) ([]T, error)
+	GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, error)
 }
 
 type CrudUseCase[T any] struct {
@@ -46,7 +46,7 @@ func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) (
 	)
 }
 
-func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error) {
+func (uc *CrudUseCase[T]) GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error) {
 	useCase := newUseCase[T](uc.Log, uc.DB, request)
 
 	return wrapperPlural(
@@ -58,7 +58,7 @@ func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request model.GetByIDRequ
 	)
 }
 
-func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request model.GetByIDRequest[[]int]) ([]T, error) {
+func (uc *CrudUseCase[T]) GetByIds(ctx context.Context, request model.GetByIDRequest[[]int]) ([]T, error) {
 	useCase := newUseCase[T](uc.Log, uc.DB, request)
 
 	return wrapperPlural(
@@ -70,7 +70,7 @@ func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request model.GetByIDReq
 	)
 }
 
-func (uc *CrudUseCase[T]) GetFirstByID(ctx context.Context, request model.GetByIDRequest[int]) (*T, error) {
+func (uc *CrudUseCase[T]) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, error) {
 	useCase := newUseCase[T](uc.Log, uc.DB, request)
 
 	return wrapperSingular(

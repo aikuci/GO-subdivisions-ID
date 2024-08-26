@@ -33,31 +33,31 @@ func (c *CityController) ListByIdAndIdProvince(ctx *fiber.Ctx) error {
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.ListCityByIDRequest[[]int]]) ([]entity.City, error) {
-			return c.UseCase.ListFindByIDAndIDProvince(cp.context, cp.request)
+			return c.UseCase.ListFindByIdAndIdProvince(cp.context, cp.request)
 		},
 	)
 }
 
-func (c *CityController) GetByIDAndIdProvince(ctx *fiber.Ctx) error {
+func (c *CityController) GetByIdAndIdProvince(ctx *fiber.Ctx) error {
 	controller := newController[entity.City, model.CityResponse, model.GetCityByIDRequest[[]int]](c.CrudController.Log, c.CrudController.Mapper)
 
 	return wrapperPlural(
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
-			return c.UseCase.GetFindByIDAndIDProvince(cp.context, cp.request)
+			return c.UseCase.GetFindByIdAndIdProvince(cp.context, cp.request)
 		},
 	)
 }
 
-func (c *CityController) GetFirstByIDAndIdProvince(ctx *fiber.Ctx) error {
+func (c *CityController) GetFirstByIdAndIdProvince(ctx *fiber.Ctx) error {
 	controller := newController[entity.City, model.CityResponse, model.GetCityByIDRequest[int]](c.CrudController.Log, c.CrudController.Mapper)
 
 	return wrapperSingular(
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetCityByIDRequest[int]]) (*entity.City, error) {
-			return c.UseCase.GetFirstByIDAndIDProvince(cp.context, cp.request)
+			return c.UseCase.GetFirstByIdAndIdProvince(cp.context, cp.request)
 		},
 	)
 }
