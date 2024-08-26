@@ -59,14 +59,7 @@ func (uc *CityUseCase) ListFindByIDAndIDProvince(ctx context.Context, request mo
 			if cp.request.IDProvince != nil {
 				where["id_province"] = cp.request.IDProvince
 			}
-			collections, err := uc.Repository.FindBy(cp.tx, where)
-
-			if err != nil {
-				cp.log.Warn(err.Error())
-				return nil, fiber.ErrInternalServerError
-			}
-
-			return collections, nil
+			return uc.Repository.FindBy(cp.tx, where)
 		},
 	)
 }
@@ -85,14 +78,7 @@ func (uc *CityUseCase) GetFindByIDAndIDProvince(ctx context.Context, request mod
 			if cp.request.IDProvince != nil {
 				where["id_province"] = cp.request.IDProvince
 			}
-			collections, err := uc.Repository.FindBy(cp.tx, where)
-
-			if err != nil {
-				cp.log.Warn(err.Error())
-				return nil, fiber.ErrInternalServerError
-			}
-
-			return collections, nil
+			return uc.Repository.FindBy(cp.tx, where)
 		},
 	)
 }

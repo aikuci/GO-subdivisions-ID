@@ -35,7 +35,12 @@ func wrapperSingular[TEntity any, TModel any, TRequest any](ctx *fiber.Ctx, c *C
 	context := requestid.SetContext(ctx.UserContext(), ctx)
 	log := c.Log.With(zap.String("requestid", requestid.FromContext(context)))
 
-	collection, err := callback(&CallbackParam[TRequest]{context: context, log: log, fiberCtx: ctx, request: c.Request})
+	requestParsed := new(TRequest)
+	if err := parseRequest(ctx, requestParsed); err != nil {
+		return err
+	}
+
+	collection, err := callback(&CallbackParam[TRequest]{context: context, log: log, fiberCtx: ctx, request: *requestParsed})
 	if err != nil {
 		log.Warn(err.Error())
 		return err
@@ -48,7 +53,12 @@ func wrapperPlural[TEntity any, TModel any, TRequest any](ctx *fiber.Ctx, c *Con
 	context := requestid.SetContext(ctx.UserContext(), ctx)
 	log := c.Log.With(zap.String("requestid", requestid.FromContext(context)))
 
-	collections, err := callback(&CallbackParam[TRequest]{context: context, log: log, fiberCtx: ctx, request: c.Request})
+	requestParsed := new(TRequest)
+	if err := parseRequest(ctx, requestParsed); err != nil {
+		return err
+	}
+
+	collections, err := callback(&CallbackParam[TRequest]{context: context, log: log, fiberCtx: ctx, request: *requestParsed})
 	if err != nil {
 		log.Warn(err.Error())
 		return err

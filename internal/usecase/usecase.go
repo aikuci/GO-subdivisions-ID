@@ -40,44 +40,6 @@ type CallbackParam[T any] struct {
 	request T
 }
 
-func getRelations[TEntity any](db *gorm.DB) *relations {
-	var collections []TEntity
-	preloadDB := db.Session(&gorm.Session{
-		Initialized:              true,
-		DryRun:                   true,
-		SkipHooks:                true,
-		SkipDefaultTransaction:   true,
-		DisableNestedTransaction: true,
-	}).First(&collections)
-
-	var relations_snake []string
-	var relations_pascal []string
-	for key := range preloadDB.Statement.Schema.Relationships.Relations {
-		relations_pascal = append(relations_pascal, key)
-
-		str := stringy.New(key)
-		relations_snake = append(relations_snake, str.SnakeCase().ToLower())
-	}
-
-	return &relations{pascal: relations_pascal, snake: relations_snake}
-}
-
-func addRelations(db *gorm.DB, relations *relations, request any) (*gorm.DB, error) {
-	v := reflect.ValueOf(request)
-	if v.FieldByName("Include").IsValid() {
-		if include, ok := v.FieldByName("Include").Interface().([]string); ok {
-			for _, relation := range include {
-				idx := slice.ArrayIndexOf(relations.snake, relation)
-				if idx == -1 {
-					return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(relations.snake, ", ")))
-				}
-				db = db.Preload(relations.pascal[idx])
-			}
-		}
-	}
-	return db, nil
-}
-
 func wrapperSingular[TEntity any, TRequest any](ctx context.Context, uc *UseCase[TEntity, TRequest], fc func(cp *CallbackParam[TRequest]) (*TEntity, error)) (*TEntity, error) {
 	log := uc.Log.With(zap.String("requestid", requestid.FromContext(ctx)))
 
@@ -127,4 +89,42 @@ func wrapperPlural[TEntity any, TRequest any](ctx context.Context, uc *UseCase[T
 	}
 
 	return collections, nil
+}
+
+func getRelations[TEntity any](db *gorm.DB) *relations {
+	var collections []TEntity
+	preloadDB := db.Session(&gorm.Session{
+		Initialized:              true,
+		DryRun:                   true,
+		SkipHooks:                true,
+		SkipDefaultTransaction:   true,
+		DisableNestedTransaction: true,
+	}).First(&collections)
+
+	var relations_snake []string
+	var relations_pascal []string
+	for key := range preloadDB.Statement.Schema.Relationships.Relations {
+		relations_pascal = append(relations_pascal, key)
+
+		str := stringy.New(key)
+		relations_snake = append(relations_snake, str.SnakeCase().ToLower())
+	}
+
+	return &relations{pascal: relations_pascal, snake: relations_snake}
+}
+
+func addRelations(db *gorm.DB, relations *relations, request any) (*gorm.DB, error) {
+	v := reflect.ValueOf(request)
+	if v.FieldByName("Include").IsValid() {
+		if include, ok := v.FieldByName("Include").Interface().([]string); ok {
+			for _, relation := range include {
+				idx := slice.ArrayIndexOf(relations.snake, relation)
+				if idx == -1 {
+					return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(relations.snake, ", ")))
+				}
+				db = db.Preload(relations.pascal[idx])
+			}
+		}
+	}
+	return db, nil
 }

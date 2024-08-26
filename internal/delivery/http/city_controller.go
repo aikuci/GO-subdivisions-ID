@@ -33,13 +33,7 @@ func (c *CityController) ListByIdAndIdProvince(ctx *fiber.Ctx) error {
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.ListCityByIDRequest[[]int]]) ([]entity.City, error) {
-			requestParsed := new(model.ListCityByIDRequest[[]int])
-			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
-				return nil, err
-			}
-			request := model.ListCityByIDRequest[[]int]{Include: requestParsed.Include, ID: requestParsed.ID, IDProvince: requestParsed.IDProvince}
-
-			return c.UseCase.ListFindByIDAndIDProvince(cp.context, request)
+			return c.UseCase.ListFindByIDAndIDProvince(cp.context, cp.request)
 		},
 	)
 }
@@ -51,13 +45,7 @@ func (c *CityController) GetByIDAndIdProvince(ctx *fiber.Ctx) error {
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
-			requestParsed := new(model.GetCityByIDRequest[[]int])
-			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
-				return nil, err
-			}
-			request := model.GetCityByIDRequest[[]int]{ID: requestParsed.ID, IDProvince: requestParsed.IDProvince, Include: requestParsed.Include}
-
-			return c.UseCase.GetFindByIDAndIDProvince(cp.context, request)
+			return c.UseCase.GetFindByIDAndIDProvince(cp.context, cp.request)
 		},
 	)
 }
@@ -69,13 +57,7 @@ func (c *CityController) GetFirstByIDAndIdProvince(ctx *fiber.Ctx) error {
 		ctx,
 		controller,
 		func(cp *CallbackParam[model.GetCityByIDRequest[int]]) (*entity.City, error) {
-			requestParsed := new(model.GetCityByIDRequest[int])
-			if err := parseRequest(cp.fiberCtx, requestParsed); err != nil {
-				return nil, err
-			}
-			request := model.GetCityByIDRequest[int]{ID: requestParsed.ID, IDProvince: requestParsed.IDProvince, Include: requestParsed.Include}
-
-			return c.UseCase.GetFirstByIDAndIDProvince(cp.context, request)
+			return c.UseCase.GetFirstByIDAndIDProvince(cp.context, cp.request)
 		},
 	)
 }

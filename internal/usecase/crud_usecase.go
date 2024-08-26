@@ -41,15 +41,7 @@ func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) (
 		ctx,
 		useCase,
 		func(cp *CallbackParam[model.ListRequest]) ([]T, error) {
-			db := cp.tx
-			collections, err := uc.Repository.Find(db)
-
-			if err != nil {
-				cp.log.Warn(err.Error())
-				return nil, fiber.ErrInternalServerError
-			}
-
-			return collections, nil
+			return uc.Repository.Find(cp.tx)
 		},
 	)
 }
@@ -61,15 +53,7 @@ func (uc *CrudUseCase[T]) GetByID(ctx context.Context, request model.GetByIDRequ
 		ctx,
 		useCase,
 		func(cp *CallbackParam[model.GetByIDRequest[int]]) ([]T, error) {
-			db := cp.tx
-			collections, err := uc.Repository.FindById(db, cp.request.ID)
-
-			if err != nil {
-				cp.log.Warn(err.Error())
-				return nil, fiber.ErrInternalServerError
-			}
-
-			return collections, nil
+			return uc.Repository.FindById(cp.tx, cp.request.ID)
 		},
 	)
 }
@@ -81,15 +65,7 @@ func (uc *CrudUseCase[T]) GetByIDs(ctx context.Context, request model.GetByIDReq
 		ctx,
 		useCase,
 		func(cp *CallbackParam[model.GetByIDRequest[[]int]]) ([]T, error) {
-			db := cp.tx
-			collections, err := uc.Repository.FindByIds(db, cp.request.ID)
-
-			if err != nil {
-				cp.log.Warn(err.Error())
-				return nil, fiber.ErrInternalServerError
-			}
-
-			return collections, nil
+			return uc.Repository.FindByIds(cp.tx, cp.request.ID)
 		},
 	)
 }
