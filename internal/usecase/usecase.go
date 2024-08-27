@@ -105,6 +105,10 @@ func collectRelations[TEntity any](db *gorm.DB) *relations {
 	var relations_snake []string
 	var relations_pascal []string
 	for key := range preloadDB.Statement.Schema.Relationships.Relations {
+		if strings.HasPrefix(key, "_") {
+			continue
+		}
+
 		relations_pascal = append(relations_pascal, key)
 
 		str := stringy.New(key)
