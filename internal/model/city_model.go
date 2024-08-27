@@ -8,6 +8,7 @@ type CityResponse struct {
 	Code        string             `json:"code"`
 	Name        string             `json:"name"`
 	PostalCodes pq.Int64Array      `json:"postal_codes"`
+	Province    ProvinceResponse   `json:"province,omitempty"`
 	Districts   []DistrictResponse `json:"districts,omitempty"`
 }
 

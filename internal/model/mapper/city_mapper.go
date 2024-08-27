@@ -12,6 +12,8 @@ func NewCityMapper() *CityMapper {
 }
 
 func (m *CityMapper) ModelToResponse(city *entity.City) *model.CityResponse {
+	provinceMapper := NewProvinceMapper()
+
 	districtsMapper := NewDistrictMapper()
 	districts := make([]model.DistrictResponse, len(city.Districts))
 	for i, collection := range city.Districts {
@@ -24,6 +26,7 @@ func (m *CityMapper) ModelToResponse(city *entity.City) *model.CityResponse {
 		Code:                   city.Code,
 		Name:                   city.Name,
 		PostalCodes:            city.PostalCodes,
+		Province:               *provinceMapper.ModelToResponse(&city.Province),
 		Districts:              districts,
 	}
 }
