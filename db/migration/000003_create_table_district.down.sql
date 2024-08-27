@@ -1,3 +1,3 @@
-DROP INDEX IF EXISTS district_city_idx;
-DROP INDEX IF EXISTS district_province_idx;
-DROP TABLE IF EXISTS district;
+DROP INDEX IF EXISTS districts_provinces_idx;
+DROP INDEX IF EXISTS districts_cities_idx;
+DROP TABLE IF EXISTS districts;

@@ -1,4 +1,4 @@
-DROP INDEX IF EXISTS village_district_idx;
-DROP INDEX IF EXISTS village_city_idx;
-DROP INDEX IF EXISTS village_province_idx;
-DROP TABLE IF EXISTS village;
+DROP INDEX IF EXISTS villages_provinces_idx;
+DROP INDEX IF EXISTS villages_cities_idx;
+DROP INDEX IF EXISTS villages_districts_idx;
+DROP TABLE IF EXISTS villages;

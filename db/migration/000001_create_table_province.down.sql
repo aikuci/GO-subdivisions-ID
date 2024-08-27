@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS province;
+DROP TABLE IF EXISTS provinces;
