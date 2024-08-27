@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aikuci/go-subdivisions-id/internal/repository"
 	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
+	apprepository "github.com/aikuci/go-subdivisions-id/pkg/repository"
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"go.uber.org/zap"
@@ -22,10 +22,10 @@ type CruderUseCase[T any] interface {
 type CrudUseCase[T any] struct {
 	Log        *zap.Logger
 	DB         *gorm.DB
-	Repository repository.CruderRepository[T]
+	Repository apprepository.CruderRepository[T]
 }
 
-func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T]) *CrudUseCase[T] {
+func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository apprepository.CruderRepository[T]) *CrudUseCase[T] {
 	return &CrudUseCase[T]{
 		Log:        log,
 		DB:         db,

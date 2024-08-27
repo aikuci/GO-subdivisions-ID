@@ -7,6 +7,7 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
+	apprepository "github.com/aikuci/go-subdivisions-id/pkg/repository"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -25,7 +26,7 @@ type BootstrapConfig struct {
 
 func Bootstrap(config *BootstrapConfig) {
 	// setup repositories
-	provinceRepository := repository.NewCrudRepository[entity.Province, int, []int]()
+	provinceRepository := apprepository.NewCrudRepository[entity.Province, int, []int]()
 	cityRepository := repository.NewCityRepository[int, []int]()
 	districtRepository := repository.NewDistrictRepository[int, []int]()
 
