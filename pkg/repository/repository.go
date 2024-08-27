@@ -1,12 +1,12 @@
 package repository
 
 import (
-	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
+	"github.com/aikuci/go-subdivisions-id/pkg/model"
 
 	"gorm.io/gorm"
 )
 
-type Repository[T any, TId appmodel.IdSingular, TIds appmodel.IdPlural] struct{}
+type Repository[T any, TId model.IdSingular, TIds model.IdPlural] struct{}
 
 // TODO:
 // Refer to the GORM documentation for advanced query examples: https://gorm.io/docs/advanced_query.html#Find-To-Map

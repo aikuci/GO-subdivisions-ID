@@ -1,7 +1,7 @@
 package repository
 
 import (
-	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
+	"github.com/aikuci/go-subdivisions-id/pkg/model"
 
 	"gorm.io/gorm"
 )
@@ -16,10 +16,10 @@ type CruderRepository[T any] interface {
 	FindAndCountByIds(db *gorm.DB, ids []int) ([]T, int64, error)
 }
 
-type CrudRepository[T any, TId appmodel.IdSingular, TIds appmodel.IdPlural] struct {
+type CrudRepository[T any, TId model.IdSingular, TIds model.IdPlural] struct {
 	Repository[T, TId, TIds]
 }
 
-func NewCrudRepository[T any, TId appmodel.IdSingular, TIds appmodel.IdPlural]() *CrudRepository[T, TId, TIds] {
+func NewCrudRepository[T any, TId model.IdSingular, TIds model.IdPlural]() *CrudRepository[T, TId, TIds] {
 	return &CrudRepository[T, TId, TIds]{}
 }
