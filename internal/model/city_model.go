@@ -1,9 +1,13 @@
 package model
 
-import "github.com/lib/pq"
+import (
+	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
+
+	"github.com/lib/pq"
+)
 
 type CityResponse struct {
-	BaseCollectionResponse[int]
+	appmodel.BaseCollectionResponse[int]
 	IDProvince  int                `json:"id_province"`
 	Code        string             `json:"code"`
 	Name        string             `json:"name"`
@@ -12,14 +16,14 @@ type CityResponse struct {
 	Districts   []DistrictResponse `json:"districts,omitempty"`
 }
 
-type ListCityByIDRequest[T IdPlural] struct {
-	PageRequest
+type ListCityByIDRequest[T appmodel.IdPlural] struct {
+	appmodel.PageRequest
 	Include    []string `json:"include" query:"include"`
 	ID         T        `json:"-" params:"id" query:"id"`
 	IDProvince T        `json:"-" params:"id_province" query:"id_province"`
 }
 
-type GetCityByIDRequest[T IdOrIds] struct {
+type GetCityByIDRequest[T appmodel.IdOrIds] struct {
 	ID         T        `json:"-" params:"id" query:"id" validate:"required"`
 	IDProvince T        `json:"-" params:"id_province" query:"id_province"`
 	Include    []string `json:"include" query:"include"`

@@ -3,8 +3,8 @@ package http
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
-	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
+	appmapper "github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -13,10 +13,10 @@ import (
 type CityController struct {
 	Log     *zap.Logger
 	UseCase usecase.CityUseCase
-	Mapper  mapper.CruderMapper[entity.City, model.CityResponse]
+	Mapper  appmapper.CruderMapper[entity.City, model.CityResponse]
 }
 
-func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper mapper.CruderMapper[entity.City, model.CityResponse]) *CityController {
+func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper appmapper.CruderMapper[entity.City, model.CityResponse]) *CityController {
 	return &CityController{
 		Log:     log,
 		UseCase: *useCase,

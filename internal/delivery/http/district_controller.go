@@ -3,8 +3,8 @@ package http
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
-	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
+	appmapper "github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -13,10 +13,10 @@ import (
 type DistrictController struct {
 	Log     *zap.Logger
 	UseCase usecase.DistrictUseCase
-	Mapper  mapper.CruderMapper[entity.District, model.DistrictResponse]
+	Mapper  appmapper.CruderMapper[entity.District, model.DistrictResponse]
 }
 
-func NewDistrictController(log *zap.Logger, useCase *usecase.DistrictUseCase, mapper mapper.CruderMapper[entity.District, model.DistrictResponse]) *DistrictController {
+func NewDistrictController(log *zap.Logger, useCase *usecase.DistrictUseCase, mapper appmapper.CruderMapper[entity.District, model.DistrictResponse]) *DistrictController {
 	return &DistrictController{
 		Log:     log,
 		UseCase: *useCase,

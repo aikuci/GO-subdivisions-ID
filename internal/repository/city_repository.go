@@ -2,16 +2,16 @@ package repository
 
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
-	"github.com/aikuci/go-subdivisions-id/internal/model"
+	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
 
 	"gorm.io/gorm"
 )
 
-type CityRepository[TId model.IdSingular, TIds model.IdPlural] struct {
+type CityRepository[TId appmodel.IdSingular, TIds appmodel.IdPlural] struct {
 	Repository[entity.City, TId, TIds]
 }
 
-func NewCityRepository[TId model.IdSingular, TIds model.IdPlural]() *CityRepository[TId, TIds] {
+func NewCityRepository[TId appmodel.IdSingular, TIds appmodel.IdPlural]() *CityRepository[TId, TIds] {
 	return &CityRepository[TId, TIds]{}
 }
 

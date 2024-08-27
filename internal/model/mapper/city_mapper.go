@@ -3,6 +3,7 @@ package mapper
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
+	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
 )
 
 type CityMapper struct{}
@@ -21,7 +22,7 @@ func (m *CityMapper) ModelToResponse(city *entity.City) *model.CityResponse {
 	}
 
 	return &model.CityResponse{
-		BaseCollectionResponse: model.BaseCollectionResponse[int]{ID: city.ID},
+		BaseCollectionResponse: appmodel.BaseCollectionResponse[int]{ID: city.ID},
 		IDProvince:             city.ProvinceID,
 		Code:                   city.Code,
 		Name:                   city.Name,

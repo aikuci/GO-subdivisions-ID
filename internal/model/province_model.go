@@ -1,9 +1,13 @@
 package model
 
-import "github.com/lib/pq"
+import (
+	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
+
+	"github.com/lib/pq"
+)
 
 type ProvinceResponse struct {
-	BaseCollectionResponse[int]
+	appmodel.BaseCollectionResponse[int]
 	Code        string             `json:"code"`
 	Name        string             `json:"name"`
 	PostalCodes pq.Int64Array      `json:"postal_codes"`

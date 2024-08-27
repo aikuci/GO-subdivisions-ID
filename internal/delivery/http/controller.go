@@ -6,8 +6,8 @@ import (
 	"reflect"
 
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
-	"github.com/aikuci/go-subdivisions-id/internal/model"
-	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
+	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
+	appmapper "github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -16,11 +16,11 @@ import (
 type Controller[TEntity any, TModel any, TRequest any] struct {
 	Log      *zap.Logger
 	FiberCtx *fiber.Ctx
-	Mapper   mapper.CruderMapper[TEntity, TModel]
+	Mapper   appmapper.CruderMapper[TEntity, TModel]
 	Request  TRequest
 }
 
-func newController[TEntity any, TModel any, TRequest any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper mapper.CruderMapper[TEntity, TModel]) *Controller[TEntity, TModel, TRequest] {
+func newController[TEntity any, TModel any, TRequest any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper appmapper.CruderMapper[TEntity, TModel]) *Controller[TEntity, TModel, TRequest] {
 	return &Controller[TEntity, TModel, TRequest]{
 		Log:      log,
 		FiberCtx: fiberCtx,
@@ -48,7 +48,7 @@ func wrapperSingular[TEntity any, TModel any, TRequest any](c *Controller[TEntit
 		return err
 	}
 
-	return c.FiberCtx.JSON(model.WebResponse[*TModel]{Data: c.Mapper.ModelToResponse(collection)})
+	return c.FiberCtx.JSON(appmodel.WebResponse[*TModel]{Data: c.Mapper.ModelToResponse(collection)})
 }
 
 func wrapperPlural[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) ([]TEntity, int64, error)) error {
@@ -71,7 +71,7 @@ func wrapperPlural[TEntity any, TModel any, TRequest any](c *Controller[TEntity,
 		responses[i] = *c.Mapper.ModelToResponse(&collection)
 	}
 
-	return c.FiberCtx.JSON(model.WebResponse[[]TModel]{Data: responses, Meta: &model.Meta{Page: generatePageMeta(requestParsed, total)}})
+	return c.FiberCtx.JSON(appmodel.WebResponse[[]TModel]{Data: responses, Meta: &appmodel.Meta{Page: generatePageMeta(requestParsed, total)}})
 }
 
 func parseRequest(ctx *fiber.Ctx, request any) error {
@@ -95,12 +95,12 @@ func parseRequest(ctx *fiber.Ctx, request any) error {
 	return nil
 }
 
-func generatePageMeta(request any, total int64) *model.PageMetadata {
+func generatePageMeta(request any, total int64) *appmodel.PageMetadata {
 	r := reflect.ValueOf(request).Elem()
 	for i := 0; i < r.NumField(); i++ {
-		if pagination, ok := r.Field(i).Interface().(model.PageRequest); ok {
+		if pagination, ok := r.Field(i).Interface().(appmodel.PageRequest); ok {
 			if pagination.Page > 0 && pagination.Size > 0 {
-				return &model.PageMetadata{
+				return &appmodel.PageMetadata{
 					Page:      pagination.Page,
 					Size:      pagination.Size,
 					TotalItem: total,
