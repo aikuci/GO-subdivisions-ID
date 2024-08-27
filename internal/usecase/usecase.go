@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
+	"github.com/aikuci/go-subdivisions-id/internal/model"
 	apperror "github.com/aikuci/go-subdivisions-id/internal/pkg/error"
 	"github.com/aikuci/go-subdivisions-id/internal/pkg/slice"
 
@@ -62,7 +63,7 @@ func wrapperSingular[TEntity any, TRequest any](uc *UseCase[TEntity, TRequest], 
 	return collection, nil
 }
 
-func wrapperPlural[TEntity any, TRequest any](uc *UseCase[TEntity, TRequest], fc func(ca *CallbackArgs[TRequest]) ([]TEntity, error)) ([]TEntity, error) {
+func wrapperPlural[TEntity any, TRequest any](uc *UseCase[TEntity, TRequest], fc func(ca *CallbackArgs[TRequest]) ([]TEntity, int64, error)) ([]TEntity, int64, error) {
 	log := uc.Log.With(zap.String("requestid", requestid.FromContext(uc.Ctx)))
 
 	tx := uc.DB.WithContext(uc.Ctx).Begin()
@@ -70,21 +71,22 @@ func wrapperPlural[TEntity any, TRequest any](uc *UseCase[TEntity, TRequest], fc
 
 	tx, err := addRelations(log, tx, generateRelations[TEntity](uc.DB), uc.Request)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	tx = addPagination(tx, uc.Request)
 
-	collections, err := fc(&CallbackArgs[TRequest]{log: log, tx: tx, request: uc.Request})
+	collections, total, err := fc(&CallbackArgs[TRequest]{log: log, tx: tx, request: uc.Request})
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		errorMessage := "failed to commit transaction"
 		log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-		return nil, apperror.InternalServerError(errorMessage)
+		return nil, 0, apperror.InternalServerError(errorMessage)
 	}
 
-	return collections, nil
+	return collections, total, nil
 }
 
 type relations struct {
@@ -125,9 +127,9 @@ func collectRelations(db *gorm.DB, collection any) *relations {
 }
 
 func addRelations(log *zap.Logger, db *gorm.DB, relations *relations, request any) (*gorm.DB, error) {
-	v := reflect.ValueOf(request)
-	if v.FieldByName("Include").IsValid() {
-		if include, ok := v.FieldByName("Include").Interface().([]string); ok {
+	r := reflect.ValueOf(request)
+	if r.FieldByName("Include").IsValid() {
+		if include, ok := r.FieldByName("Include").Interface().([]string); ok {
 			for _, relation := range include {
 				if strings.Contains(relation, ".") {
 					// TODO: Check if the relation is valid
@@ -146,4 +148,17 @@ func addRelations(log *zap.Logger, db *gorm.DB, relations *relations, request an
 		}
 	}
 	return db, nil
+}
+
+func addPagination(db *gorm.DB, request any) *gorm.DB {
+	r := reflect.ValueOf(request)
+	for i := 0; i < r.NumField(); i++ {
+		if pagination, ok := r.Field(i).Interface().(model.PageRequest); ok {
+			if pagination.Page > 0 && pagination.Size > 0 {
+				offset := (pagination.Page - 1) * pagination.Size
+				return db.Offset(offset).Limit(pagination.Size)
+			}
+		}
+	}
+	return db
 }

@@ -20,7 +20,12 @@ type IdPluralRequest[T IdPlural] struct {
 }
 
 // Request
+type PageRequest struct {
+	Page int `json:"page" query:"page"`
+	Size int `json:"size" query:"size"`
+}
 type ListRequest struct {
+	PageRequest
 	Include []string `json:"include" query:"include"`
 }
 type GetByIDRequest[T IdOrIds] struct {
@@ -33,13 +38,16 @@ type BaseCollectionResponse[T IdSingular] struct {
 	ID T `json:"id"`
 }
 type WebResponse[T any] struct {
-	Data   T             `json:"data"`
-	Paging *PageMetadata `json:"paging,omitempty"`
-	Errors string        `json:"errors,omitempty"`
+	Data   T      `json:"data"`
+	Meta   *Meta  `json:"meta,omitempty"`
+	Errors string `json:"errors,omitempty"`
+}
+type Meta struct {
+	Page *PageMetadata `json:"page,omitempty"`
 }
 type PageResponse[T any] struct {
 	Data         []T          `json:"data,omitempty"`
-	PageMetadata PageMetadata `json:"paging,omitempty"`
+	PageMetadata PageMetadata `json:"page,omitempty"`
 }
 type PageMetadata struct {
 	Page      int   `json:"page"`

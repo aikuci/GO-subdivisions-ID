@@ -13,6 +13,7 @@ type CityResponse struct {
 }
 
 type ListCityByIDRequest[T IdPlural] struct {
+	PageRequest
 	Include    []string `json:"include" query:"include"`
 	ID         T        `json:"-" params:"id" query:"id"`
 	IDProvince T        `json:"-" params:"id_province" query:"id_province"`
