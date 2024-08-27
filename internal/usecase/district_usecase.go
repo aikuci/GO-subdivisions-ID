@@ -28,10 +28,10 @@ func NewDistrictUseCase(log *zap.Logger, db *gorm.DB, repository *repository.Dis
 	}
 }
 
-func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictByIDRequest[[]int]) ([]entity.District, error) {
+func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictByIDRequest[[]int]) ([]entity.District, int64, error) {
 	return wrapperPlural(
 		newUseCase[entity.District](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.ListDistrictByIDRequest[[]int]]) ([]entity.District, error) {
+		func(ca *CallbackArgs[model.ListDistrictByIDRequest[[]int]]) ([]entity.District, int64, error) {
 			where := map[string]interface{}{}
 			if ca.request.ID != nil {
 				where["id"] = ca.request.ID
@@ -42,14 +42,15 @@ func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictB
 			if ca.request.IDProvince != nil {
 				where["id_province"] = ca.request.IDProvince
 			}
-			return uc.Repository.FindBy(ca.tx, where)
+			return uc.Repository.FindAndCountBy(ca.tx, where)
 		},
 	)
 }
-func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistrictByIDRequest[[]int]) ([]entity.District, error) {
+
+func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistrictByIDRequest[[]int]) ([]entity.District, int64, error) {
 	return wrapperPlural(
 		newUseCase[entity.District](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.GetDistrictByIDRequest[[]int]]) ([]entity.District, error) {
+		func(ca *CallbackArgs[model.GetDistrictByIDRequest[[]int]]) ([]entity.District, int64, error) {
 			where := map[string]interface{}{}
 			if ca.request.ID != nil {
 				where["id"] = ca.request.ID
@@ -60,10 +61,11 @@ func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistric
 			if ca.request.IDProvince != nil {
 				where["id_province"] = ca.request.IDProvince
 			}
-			return uc.Repository.FindBy(ca.tx, where)
+			return uc.Repository.FindAndCountBy(ca.tx, where)
 		},
 	)
 }
+
 func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetDistrictByIDRequest[int]) (*entity.District, error) {
 	return wrapperSingular(
 		newUseCase[entity.District](ctx, uc.Log, uc.DB, request),

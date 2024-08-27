@@ -14,8 +14,8 @@ import (
 )
 
 type CruderUseCase[T any] interface {
-	List(ctx context.Context, request model.ListRequest) ([]T, error)
-	GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error)
+	List(ctx context.Context, request model.ListRequest) ([]T, int64, error)
+	GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]T, int64, error)
 	GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, error)
 }
 
@@ -33,20 +33,20 @@ func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository repository.C
 	}
 }
 
-func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) ([]T, error) {
+func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) ([]T, int64, error) {
 	return wrapperPlural(
 		newUseCase[T](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.ListRequest]) ([]T, error) {
-			return uc.Repository.Find(ca.tx)
+		func(ca *CallbackArgs[model.ListRequest]) ([]T, int64, error) {
+			return uc.Repository.FindAndCount(ca.tx)
 		},
 	)
 }
 
-func (uc *CrudUseCase[T]) GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]T, error) {
+func (uc *CrudUseCase[T]) GetById(ctx context.Context, request model.GetByIDRequest[int]) ([]T, int64, error) {
 	return wrapperPlural(
 		newUseCase[T](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.GetByIDRequest[int]]) ([]T, error) {
-			return uc.Repository.FindById(ca.tx, ca.request.ID)
+		func(ca *CallbackArgs[model.GetByIDRequest[int]]) ([]T, int64, error) {
+			return uc.Repository.FindAndCountById(ca.tx, ca.request.ID)
 		},
 	)
 }

@@ -27,7 +27,7 @@ func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper map
 func (c *CityController) List(ctx *fiber.Ctx) error {
 	return wrapperPlural(
 		newController[entity.City, model.CityResponse, model.ListCityByIDRequest[[]int]](c.Log, ctx, c.Mapper),
-		func(ca *CallbackArgs[model.ListCityByIDRequest[[]int]]) ([]entity.City, error) {
+		func(ca *CallbackArgs[model.ListCityByIDRequest[[]int]]) ([]entity.City, int64, error) {
 			return c.UseCase.List(ca.context, ca.request)
 		},
 	)
@@ -36,7 +36,7 @@ func (c *CityController) List(ctx *fiber.Ctx) error {
 func (c *CityController) GetById(ctx *fiber.Ctx) error {
 	return wrapperPlural(
 		newController[entity.City, model.CityResponse, model.GetCityByIDRequest[[]int]](c.Log, ctx, c.Mapper),
-		func(ca *CallbackArgs[model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
+		func(ca *CallbackArgs[model.GetCityByIDRequest[[]int]]) ([]entity.City, int64, error) {
 			return c.UseCase.GetById(ca.context, ca.request)
 		},
 	)

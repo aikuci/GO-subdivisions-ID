@@ -28,10 +28,10 @@ func NewCityUseCase(log *zap.Logger, db *gorm.DB, repository *repository.CityRep
 	}
 }
 
-func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDRequest[[]int]) ([]entity.City, error) {
+func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDRequest[[]int]) ([]entity.City, int64, error) {
 	return wrapperPlural(
 		newUseCase[entity.City](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.ListCityByIDRequest[[]int]]) ([]entity.City, error) {
+		func(ca *CallbackArgs[model.ListCityByIDRequest[[]int]]) ([]entity.City, int64, error) {
 			where := map[string]interface{}{}
 			if ca.request.ID != nil {
 				where["id"] = ca.request.ID
@@ -39,14 +39,15 @@ func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDReque
 			if ca.request.IDProvince != nil {
 				where["id_province"] = ca.request.IDProvince
 			}
-			return uc.Repository.FindBy(ca.tx, where)
+			return uc.Repository.FindAndCountBy(ca.tx, where)
 		},
 	)
 }
-func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDRequest[[]int]) ([]entity.City, error) {
+
+func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDRequest[[]int]) ([]entity.City, int64, error) {
 	return wrapperPlural(
 		newUseCase[entity.City](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.GetCityByIDRequest[[]int]]) ([]entity.City, error) {
+		func(ca *CallbackArgs[model.GetCityByIDRequest[[]int]]) ([]entity.City, int64, error) {
 			where := map[string]interface{}{}
 			if ca.request.ID != nil {
 				where["id"] = ca.request.ID
@@ -54,10 +55,11 @@ func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDReq
 			if ca.request.IDProvince != nil {
 				where["id_province"] = ca.request.IDProvince
 			}
-			return uc.Repository.FindBy(ca.tx, where)
+			return uc.Repository.FindAndCountBy(ca.tx, where)
 		},
 	)
 }
+
 func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetCityByIDRequest[int]) (*entity.City, error) {
 	return wrapperSingular(
 		newUseCase[entity.City](ctx, uc.Log, uc.DB, request),
