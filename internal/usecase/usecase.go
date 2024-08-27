@@ -43,7 +43,7 @@ func wrapperSingular[TEntity any, TRequest any](uc *UseCase[TEntity, TRequest], 
 	tx := uc.DB.WithContext(uc.Ctx).Begin()
 	defer tx.Rollback()
 
-	tx, err := addRelations(log, tx, collectRelations[TEntity](uc.DB), uc.Request)
+	tx, err := addRelations(log, tx, generateRelations[TEntity](uc.DB), uc.Request)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func wrapperPlural[TEntity any, TRequest any](uc *UseCase[TEntity, TRequest], fc
 	tx := uc.DB.WithContext(uc.Ctx).Begin()
 	defer tx.Rollback()
 
-	tx, err := addRelations(log, tx, collectRelations[TEntity](uc.DB), uc.Request)
+	tx, err := addRelations(log, tx, generateRelations[TEntity](uc.DB), uc.Request)
 	if err != nil {
 		return nil, err
 	}
@@ -92,15 +92,21 @@ type relations struct {
 	snake  []string
 }
 
-func collectRelations[TEntity any](db *gorm.DB) *relations {
-	var collections []TEntity
+// generateRelations uses generics to collect relationships from a database model.
+func generateRelations[TEntity any](db *gorm.DB) *relations {
+	var collection TEntity
+	return collectRelations(db, collection)
+}
+
+// collectRelations extracts relationship information from a model's schema.
+func collectRelations(db *gorm.DB, collection any) *relations {
 	preloadDB := db.Session(&gorm.Session{
 		Initialized:              true,
 		DryRun:                   true,
 		SkipHooks:                true,
 		SkipDefaultTransaction:   true,
 		DisableNestedTransaction: true,
-	}).First(&collections)
+	}).First(collection)
 
 	var relations_snake []string
 	var relations_pascal []string
