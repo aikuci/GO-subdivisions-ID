@@ -7,10 +7,13 @@ import (
 )
 
 type CruderRepository[T any] interface {
+	FirstById(db *gorm.DB, id int) (*T, error)
 	Find(db *gorm.DB) ([]T, error)
 	FindById(db *gorm.DB, id int) ([]T, error)
 	FindByIds(db *gorm.DB, ids []int) ([]T, error)
-	FirstById(db *gorm.DB, id int) (*T, error)
+	FindAndCount(db *gorm.DB) ([]T, int64, error)
+	FindAndCountById(db *gorm.DB, id int) ([]T, int64, error)
+	FindAndCountByIds(db *gorm.DB, ids []int) ([]T, int64, error)
 }
 
 type CrudRepository[T any, TId model.IdSingular, TIds model.IdPlural] struct {
