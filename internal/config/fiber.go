@@ -7,7 +7,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	apperror "github.com/aikuci/go-subdivisions-id/internal/pkg/error"
+	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"

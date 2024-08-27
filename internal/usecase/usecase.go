@@ -8,8 +8,8 @@ import (
 
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
-	apperror "github.com/aikuci/go-subdivisions-id/internal/pkg/error"
-	"github.com/aikuci/go-subdivisions-id/internal/pkg/slice"
+	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
+	"github.com/aikuci/go-subdivisions-id/pkg/util/slice"
 
 	"github.com/gobeam/stringy"
 	"go.uber.org/zap"
