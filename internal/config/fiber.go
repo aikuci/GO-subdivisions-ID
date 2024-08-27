@@ -10,6 +10,7 @@ import (
 	apperror "github.com/aikuci/go-subdivisions-id/internal/pkg/error"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -35,6 +36,9 @@ func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
 		TimeFormat: time.RFC1123Z,
 		Output:     options.LogWriter,
 	}))
+	// TODO: Extend Cache Configuration
+	// Ref: https://docs.gofiber.io/api/middleware/cache
+	app.Use(cache.New())
 	app.Use(newLimiterConfig(config))
 	app.Use(recover.New(recover.Config{
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
