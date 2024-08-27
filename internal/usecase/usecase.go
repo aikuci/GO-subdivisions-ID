@@ -119,13 +119,19 @@ func addRelations(log *zap.Logger, db *gorm.DB, relations *relations, request an
 	if v.FieldByName("Include").IsValid() {
 		if include, ok := v.FieldByName("Include").Interface().([]string); ok {
 			for _, relation := range include {
-				idx := slice.ArrayIndexOf(relations.snake, relation)
-				if idx == -1 {
-					errorMessage := fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(relations.snake, ", "))
-					log.Warn(errorMessage)
-					return nil, apperror.BadRequest(errorMessage)
+				if strings.Contains(relation, ".") {
+					// TODO: Check if the relation is valid
+					str := stringy.New(relation)
+					db = db.Preload(str.PascalCase().Delimited(".").Get())
+				} else {
+					idx := slice.ArrayIndexOf(relations.snake, relation)
+					if idx == -1 {
+						errorMessage := fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(relations.snake, ", "))
+						log.Warn(errorMessage)
+						return nil, apperror.BadRequest(errorMessage)
+					}
+					db = db.Preload(relations.pascal[idx])
 				}
-				db = db.Preload(relations.pascal[idx])
 			}
 		}
 	}
