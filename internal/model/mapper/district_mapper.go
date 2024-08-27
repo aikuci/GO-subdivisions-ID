@@ -14,8 +14,8 @@ func NewDistrictMapper() *DistrictMapper {
 func (m *DistrictMapper) ModelToResponse(district *entity.District) *model.DistrictResponse {
 	return &model.DistrictResponse{
 		BaseCollectionResponse: model.BaseCollectionResponse[int]{ID: district.ID},
-		IDCity:                 district.IDCity,
-		IDProvince:             district.IDProvince,
+		IDCity:                 district.CityID,
+		IDProvince:             district.ProvinceID,
 		Code:                   district.Code,
 		Name:                   district.Name,
 		PostalCodes:            district.PostalCodes,

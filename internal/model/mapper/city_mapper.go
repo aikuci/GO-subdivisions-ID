@@ -20,7 +20,7 @@ func (m *CityMapper) ModelToResponse(city *entity.City) *model.CityResponse {
 
 	return &model.CityResponse{
 		BaseCollectionResponse: model.BaseCollectionResponse[int]{ID: city.ID},
-		IDProvince:             city.IDProvince,
+		IDProvince:             city.ProvinceID,
 		Code:                   city.Code,
 		Name:                   city.Name,
 		PostalCodes:            city.PostalCodes,
