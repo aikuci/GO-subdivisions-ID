@@ -1,9 +1,9 @@
 package http
 
 import (
-	"github.com/aikuci/go-subdivisions-id/internal/usecase"
 	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
 	appmapper "github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
+	appusecase "github.com/aikuci/go-subdivisions-id/pkg/usecase"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -11,11 +11,11 @@ import (
 
 type CrudController[TEntity any, TModel any] struct {
 	Log     *zap.Logger
-	UseCase usecase.CruderUseCase[TEntity]
+	UseCase appusecase.CruderUseCase[TEntity]
 	Mapper  appmapper.CruderMapper[TEntity, TModel]
 }
 
-func NewCrudController[TEntity any, TModel any](log *zap.Logger, useCase usecase.CruderUseCase[TEntity], mapper appmapper.CruderMapper[TEntity, TModel]) *CrudController[TEntity, TModel] {
+func NewCrudController[TEntity any, TModel any](log *zap.Logger, useCase appusecase.CruderUseCase[TEntity], mapper appmapper.CruderMapper[TEntity, TModel]) *CrudController[TEntity, TModel] {
 	return &CrudController[TEntity, TModel]{
 		Log:     log,
 		UseCase: useCase,

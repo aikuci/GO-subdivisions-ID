@@ -8,6 +8,7 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
+	appusecase "github.com/aikuci/go-subdivisions-id/pkg/usecase"
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"go.uber.org/zap"
@@ -29,9 +30,9 @@ func NewDistrictUseCase(log *zap.Logger, db *gorm.DB, repository *repository.Dis
 }
 
 func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictByIDRequest[[]int]) (*[]entity.District, int64, error) {
-	return Wrapper[entity.District](
-		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.ListDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
+	return appusecase.Wrapper[entity.District](
+		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *appusecase.UseCaseContext[model.ListDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
 			where := map[string]interface{}{}
 			if ctx.Request.ID != nil {
 				where["id"] = ctx.Request.ID
@@ -50,9 +51,9 @@ func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictB
 }
 
 func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistrictByIDRequest[[]int]) (*[]entity.District, int64, error) {
-	return Wrapper[entity.District](
-		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.GetDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
+	return appusecase.Wrapper[entity.District](
+		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *appusecase.UseCaseContext[model.GetDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
 			where := map[string]interface{}{}
 			if ctx.Request.ID != nil {
 				where["id"] = ctx.Request.ID
@@ -71,9 +72,9 @@ func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistric
 }
 
 func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetDistrictByIDRequest[int]) (*entity.District, int64, error) {
-	return Wrapper[entity.District](
-		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.GetDistrictByIDRequest[int]]) (*entity.District, int64, error) {
+	return appusecase.Wrapper[entity.District](
+		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *appusecase.UseCaseContext[model.GetDistrictByIDRequest[int]]) (*entity.District, int64, error) {
 			id := ctx.Request.ID
 			idCity := ctx.Request.IDCity
 			idProvince := ctx.Request.IDProvince

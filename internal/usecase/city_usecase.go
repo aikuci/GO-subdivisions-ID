@@ -8,6 +8,7 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
+	appusecase "github.com/aikuci/go-subdivisions-id/pkg/usecase"
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"go.uber.org/zap"
@@ -29,9 +30,9 @@ func NewCityUseCase(log *zap.Logger, db *gorm.DB, repository *repository.CityRep
 }
 
 func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDRequest[[]int]) (*[]entity.City, int64, error) {
-	return Wrapper[entity.City](
-		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.ListCityByIDRequest[[]int]]) (*[]entity.City, int64, error) {
+	return appusecase.Wrapper[entity.City](
+		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *appusecase.UseCaseContext[model.ListCityByIDRequest[[]int]]) (*[]entity.City, int64, error) {
 			where := map[string]interface{}{}
 			if ctx.Request.ID != nil {
 				where["id"] = ctx.Request.ID
@@ -47,9 +48,9 @@ func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDReque
 }
 
 func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDRequest[[]int]) (*[]entity.City, int64, error) {
-	return Wrapper[entity.City](
-		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.GetCityByIDRequest[[]int]]) (*[]entity.City, int64, error) {
+	return appusecase.Wrapper[entity.City](
+		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *appusecase.UseCaseContext[model.GetCityByIDRequest[[]int]]) (*[]entity.City, int64, error) {
 			where := map[string]interface{}{}
 			if ctx.Request.ID != nil {
 				where["id"] = ctx.Request.ID
@@ -65,9 +66,9 @@ func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDReq
 }
 
 func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetCityByIDRequest[int]) (*entity.City, int64, error) {
-	return Wrapper[entity.City](
-		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.GetCityByIDRequest[int]]) (*entity.City, int64, error) {
+	return appusecase.Wrapper[entity.City](
+		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *appusecase.UseCaseContext[model.GetCityByIDRequest[int]]) (*entity.City, int64, error) {
 			id := ctx.Request.ID
 			idProvince := ctx.Request.IDProvince
 			collection, err := uc.Repository.FirstByIdAndIdProvince(ctx.DB, id, idProvince)

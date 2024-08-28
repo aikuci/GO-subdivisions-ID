@@ -8,6 +8,7 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
 	apprepository "github.com/aikuci/go-subdivisions-id/pkg/repository"
+	appusecase "github.com/aikuci/go-subdivisions-id/pkg/usecase"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -31,7 +32,7 @@ func Bootstrap(config *BootstrapConfig) {
 	districtRepository := repository.NewDistrictRepository[int, []int]()
 
 	// setup use cases
-	provinceUseCase := usecase.NewCrudUseCase(config.Log, config.DB, provinceRepository)
+	provinceUseCase := appusecase.NewCrudUseCase(config.Log, config.DB, provinceRepository)
 	cityUseCase := usecase.NewCityUseCase(config.Log, config.DB, cityRepository)
 	districtUseCase := usecase.NewDistrictUseCase(config.Log, config.DB, districtRepository)
 
