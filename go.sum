@@ -24,6 +24,8 @@ github.com/gofiber/fiber/v2 v2.52.5 h1:tWoP1MJQjGEe4GB5TUGOi7P2E0ZMMRx5ZTG4rT+yG
 github.com/gofiber/fiber/v2 v2.52.5/go.mod h1:KEOE+cXMhXG0zHc9d8+E38hoX+ZN7bhOtgeF2oT6jrQ=
 github.com/gofiber/storage/sqlite3/v2 v2.1.1 h1:drmm7ghsnZINzmdpN12l3IUHd3xRu964hu1+47uekbw=
 github.com/gofiber/storage/sqlite3/v2 v2.1.1/go.mod h1:1Rx3S+pGR6NUDz6TLn1hrtTEUllD9AcZNrU3rxm+pkc=
+github.com/gofiber/utils/v2 v2.0.0-beta.6 h1:ED62bOmpRXdgviPlfTmf0Q+AXzhaTUAFtdWjgx+XkYI=
+github.com/gofiber/utils/v2 v2.0.0-beta.6/go.mod h1:3Kz8Px3jInKFvqxDzDeoSygwEOO+3uyubTmUa6PqY+0=
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=

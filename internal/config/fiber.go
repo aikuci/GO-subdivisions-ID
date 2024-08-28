@@ -16,6 +16,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/storage/sqlite3/v2"
+	"github.com/gofiber/utils/v2"
 	"github.com/spf13/viper"
 )
 
@@ -36,9 +37,11 @@ func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
 		TimeFormat: time.RFC1123Z,
 		Output:     options.LogWriter,
 	}))
-	// TODO: Extend Cache Configuration
-	// Ref: https://docs.gofiber.io/api/middleware/cache
-	app.Use(cache.New())
+	app.Use(cache.New(cache.Config{
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return utils.CopyString(c.Path()) + utils.CopyString(string(c.Request().URI().QueryString()))
+		},
+	}))
 	app.Use(newLimiterConfig(config))
 	app.Use(recover.New(recover.Config{
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
