@@ -34,61 +34,44 @@ func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository apprepositor
 }
 
 func (uc *CrudUseCase[T]) List(ctx context.Context, request appmodel.ListRequest) (*[]T, int64, error) {
-	callbackContext := &Context[appmodel.ListRequest, []T]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
 	return Wrapper[T](
-		callbackContext,
-		func(ctx *Context[appmodel.ListRequest, []T]) (ContextResult[[]T], error) {
-			data := ctx.Data
-
-			collections, total, err := uc.Repository.FindAndCount(data.DB)
-			if err != nil {
-				return ContextResult[[]T]{}, err
-			}
-
-			return ContextResult[[]T]{Collection: collections, Total: total}, nil
+		NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *UseCaseContext[appmodel.ListRequest]) (*[]T, int64, error) {
+			collections, total, err := uc.Repository.FindAndCount(ctx.DB)
+			return &collections, total, err
 		},
 	)
 }
 
 func (uc *CrudUseCase[T]) GetById(ctx context.Context, request appmodel.GetByIDRequest[int]) (*[]T, int64, error) {
-	callbackContext := &Context[appmodel.GetByIDRequest[int], []T]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
 	return Wrapper[T](
-		callbackContext,
-		func(ctx *Context[appmodel.GetByIDRequest[int], []T]) (ContextResult[[]T], error) {
-			data := ctx.Data
-
-			collections, total, err := uc.Repository.FindAndCountById(data.DB, data.Request.ID)
-			if err != nil {
-				return ContextResult[[]T]{}, err
-			}
-
-			return ContextResult[[]T]{Collection: collections, Total: total}, nil
+		NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *UseCaseContext[appmodel.GetByIDRequest[int]]) (*[]T, int64, error) {
+			collections, total, err := uc.Repository.FindAndCountById(ctx.DB, ctx.Request.ID)
+			return &collections, total, err
 		},
 	)
 }
 
 func (uc *CrudUseCase[T]) GetFirstById(ctx context.Context, request appmodel.GetByIDRequest[int]) (**T, int64, error) {
-	callbackContext := &Context[appmodel.GetByIDRequest[int], *T]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
 	return Wrapper[T](
-		callbackContext,
-		func(ctx *Context[appmodel.GetByIDRequest[int], *T]) (ContextResult[*T], error) {
-			data := ctx.Data
+		NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *UseCaseContext[appmodel.GetByIDRequest[int]]) (**T, int64, error) {
+			id := ctx.Request.ID
 
-			id := data.Request.ID
-
-			collection, err := uc.Repository.FirstById(data.DB, id)
+			collection, err := uc.Repository.FirstById(ctx.DB, id)
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					errorMessage := fmt.Sprintf("failed to get data with ID: %d", id)
-					data.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-					return ContextResult[*T]{}, apperror.RecordNotFound(errorMessage)
+					ctx.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+					return nil, 0, apperror.RecordNotFound(errorMessage)
 				}
 
-				data.Log.Warn(err.Error())
-				return ContextResult[*T]{}, err
+				ctx.Log.Warn(err.Error())
+				return nil, 0, err
 			}
 
-			return ContextResult[*T]{Collection: collection}, nil
+			return &collection, 1, nil
 		},
 	)
 }

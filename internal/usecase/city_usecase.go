@@ -29,78 +29,61 @@ func NewCityUseCase(log *zap.Logger, db *gorm.DB, repository *repository.CityRep
 }
 
 func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDRequest[[]int]) (*[]entity.City, int64, error) {
-	callbackContext := &Context[model.ListCityByIDRequest[[]int], []entity.City]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
 	return Wrapper[entity.City](
-		callbackContext,
-		func(ctx *Context[model.ListCityByIDRequest[[]int], []entity.City]) (ContextResult[[]entity.City], error) {
-			data := ctx.Data
-
+		NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *UseCaseContext[model.ListCityByIDRequest[[]int]]) (*[]entity.City, int64, error) {
 			where := map[string]interface{}{}
-			if data.Request.ID != nil {
-				where["id"] = data.Request.ID
+			if ctx.Request.ID != nil {
+				where["id"] = ctx.Request.ID
 			}
-			if data.Request.IDProvince != nil {
-				where["id_province"] = data.Request.IDProvince
-			}
-
-			collections, total, err := uc.Repository.FindAndCountBy(data.DB, where)
-			if err != nil {
-				return ContextResult[[]entity.City]{}, err
+			if ctx.Request.IDProvince != nil {
+				where["id_province"] = ctx.Request.IDProvince
 			}
 
-			return ContextResult[[]entity.City]{Collection: collections, Total: total}, nil
+			collections, total, err := uc.Repository.FindAndCountBy(ctx.DB, where)
+			return &collections, total, err
 		},
 	)
 }
 
 func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDRequest[[]int]) (*[]entity.City, int64, error) {
-	callbackContext := &Context[model.GetCityByIDRequest[[]int], []entity.City]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
 	return Wrapper[entity.City](
-		callbackContext,
-		func(ctx *Context[model.GetCityByIDRequest[[]int], []entity.City]) (ContextResult[[]entity.City], error) {
-			data := ctx.Data
-
+		NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *UseCaseContext[model.GetCityByIDRequest[[]int]]) (*[]entity.City, int64, error) {
 			where := map[string]interface{}{}
-			if data.Request.ID != nil {
-				where["id"] = data.Request.ID
+			if ctx.Request.ID != nil {
+				where["id"] = ctx.Request.ID
 			}
-			if data.Request.IDProvince != nil {
-				where["id_province"] = data.Request.IDProvince
-			}
-
-			collections, total, err := uc.Repository.FindAndCountBy(data.DB, where)
-			if err != nil {
-				return ContextResult[[]entity.City]{}, err
+			if ctx.Request.IDProvince != nil {
+				where["id_province"] = ctx.Request.IDProvince
 			}
 
-			return ContextResult[[]entity.City]{Collection: collections, Total: total}, nil
+			collections, total, err := uc.Repository.FindAndCountBy(ctx.DB, where)
+			return &collections, total, err
 		},
 	)
 }
 
 func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetCityByIDRequest[int]) (**entity.City, int64, error) {
-	callbackContext := &Context[model.GetCityByIDRequest[int], *entity.City]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
 	return Wrapper[entity.City](
-		callbackContext,
-		func(ctx *Context[model.GetCityByIDRequest[int], *entity.City]) (ContextResult[*entity.City], error) {
-			data := ctx.Data
-
-			id := data.Request.ID
-			idProvince := data.Request.IDProvince
-			collection, err := uc.Repository.FirstByIdAndIdProvince(data.DB, id, idProvince)
+		NewContext(ctx, uc.Log, uc.DB, request),
+		func(ctx *UseCaseContext[model.GetCityByIDRequest[int]]) (**entity.City, int64, error) {
+			id := ctx.Request.ID
+			idProvince := ctx.Request.IDProvince
+			collection, err := uc.Repository.FirstByIdAndIdProvince(ctx.DB, id, idProvince)
 
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					errorMessage := fmt.Sprintf("failed to get cities data with ID: %d and ID Province: %d", id, idProvince)
-					data.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-					return ContextResult[*entity.City]{}, apperror.RecordNotFound(errorMessage)
+					ctx.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+					return nil, 0, apperror.RecordNotFound(errorMessage)
 				}
 
-				data.Log.Warn(err.Error())
-				return ContextResult[*entity.City]{}, err
+				ctx.Log.Warn(err.Error())
+				return nil, 0, err
 			}
 
-			return ContextResult[*entity.City]{Collection: collection, Total: 1}, nil
+			return &collection, 1, nil
 		},
 	)
 }
