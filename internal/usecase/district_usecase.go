@@ -70,10 +70,10 @@ func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistric
 	)
 }
 
-func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetDistrictByIDRequest[int]) (**entity.District, int64, error) {
+func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetDistrictByIDRequest[int]) (*entity.District, int64, error) {
 	return Wrapper[entity.District](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.GetDistrictByIDRequest[int]]) (**entity.District, int64, error) {
+		func(ctx *UseCaseContext[model.GetDistrictByIDRequest[int]]) (*entity.District, int64, error) {
 			id := ctx.Request.ID
 			idCity := ctx.Request.IDCity
 			idProvince := ctx.Request.IDProvince

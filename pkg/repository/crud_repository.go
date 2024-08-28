@@ -7,7 +7,7 @@ import (
 )
 
 type CruderRepository[T any] interface {
-	FirstById(db *gorm.DB, id int) (*T, error)
+	FirstById(db *gorm.DB, id int) (T, error)
 	Find(db *gorm.DB) ([]T, error)
 	FindById(db *gorm.DB, id int) ([]T, error)
 	FindByIds(db *gorm.DB, ids []int) ([]T, error)

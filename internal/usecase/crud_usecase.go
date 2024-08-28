@@ -16,7 +16,7 @@ import (
 type CruderUseCase[T any] interface {
 	List(ctx context.Context, request appmodel.ListRequest) (*[]T, int64, error)
 	GetById(ctx context.Context, request appmodel.GetByIDRequest[int]) (*[]T, int64, error)
-	GetFirstById(ctx context.Context, request appmodel.GetByIDRequest[int]) (**T, int64, error)
+	GetFirstById(ctx context.Context, request appmodel.GetByIDRequest[int]) (*T, int64, error)
 }
 
 type CrudUseCase[T any] struct {
@@ -53,10 +53,10 @@ func (uc *CrudUseCase[T]) GetById(ctx context.Context, request appmodel.GetByIDR
 	)
 }
 
-func (uc *CrudUseCase[T]) GetFirstById(ctx context.Context, request appmodel.GetByIDRequest[int]) (**T, int64, error) {
+func (uc *CrudUseCase[T]) GetFirstById(ctx context.Context, request appmodel.GetByIDRequest[int]) (*T, int64, error) {
 	return Wrapper[T](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[appmodel.GetByIDRequest[int]]) (**T, int64, error) {
+		func(ctx *UseCaseContext[appmodel.GetByIDRequest[int]]) (*T, int64, error) {
 			id := ctx.Request.ID
 
 			collection, err := uc.Repository.FirstById(ctx.DB, id)

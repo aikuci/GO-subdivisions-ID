@@ -16,6 +16,6 @@ func NewDistrictRepository[TId appmodel.IdSingular, TIds appmodel.IdPlural]() *D
 	return &DistrictRepository[TId, TIds]{}
 }
 
-func (r *DistrictRepository[TId, TIds]) FirstByIdAndIdCityAndIdProvince(db *gorm.DB, id TId, id_city TId, id_province TId) (*entity.District, error) {
+func (r *DistrictRepository[TId, TIds]) FirstByIdAndIdCityAndIdProvince(db *gorm.DB, id TId, id_city TId, id_province TId) (entity.District, error) {
 	return r.FirstBy(db, map[string]interface{}{"id": id, "id_city": id_city, "id_province": id_province})
 }

@@ -15,17 +15,17 @@ type Repository[T any, TId model.IdSingular, TIds model.IdPlural] struct{}
 // 2. Known issue with unsupported data type `&[]` for `[]CityResponse` when processing `provinceResponse`.
 
 // Retrieve First Collection
-func (r *Repository[T, TId, TIds]) First(db *gorm.DB) (*T, error) {
+func (r *Repository[T, TId, TIds]) First(db *gorm.DB) (T, error) {
 	var collection T
 	err := db.First(&collection).Error
-	return &collection, err
+	return collection, err
 }
-func (r *Repository[T, TId, TIds]) FirstBy(db *gorm.DB, where map[string]interface{}) (*T, error) {
+func (r *Repository[T, TId, TIds]) FirstBy(db *gorm.DB, where map[string]interface{}) (T, error) {
 	var collection T
 	err := db.Where(where).First(&collection).Error
-	return &collection, err
+	return collection, err
 }
-func (r *Repository[T, TId, TIds]) FirstById(db *gorm.DB, id TId) (*T, error) {
+func (r *Repository[T, TId, TIds]) FirstById(db *gorm.DB, id TId) (T, error) {
 	return r.FirstBy(db, map[string]interface{}{"id": id})
 }
 

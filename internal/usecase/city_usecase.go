@@ -64,10 +64,10 @@ func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDReq
 	)
 }
 
-func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetCityByIDRequest[int]) (**entity.City, int64, error) {
+func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetCityByIDRequest[int]) (*entity.City, int64, error) {
 	return Wrapper[entity.City](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.GetCityByIDRequest[int]]) (**entity.City, int64, error) {
+		func(ctx *UseCaseContext[model.GetCityByIDRequest[int]]) (*entity.City, int64, error) {
 			id := ctx.Request.ID
 			idProvince := ctx.Request.IDProvince
 			collection, err := uc.Repository.FirstByIdAndIdProvince(ctx.DB, id, idProvince)
