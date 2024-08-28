@@ -33,7 +33,7 @@ type CallbackArgs[T any] struct {
 	request T
 }
 
-func wrapperSingular[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) (*TEntity, error)) error {
+func wrapperSingular[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) (*TEntity, int64, error)) error {
 	context := requestid.SetContext(c.FiberCtx.UserContext(), c.FiberCtx)
 	log := c.Log.With(zap.String("requestid", requestid.FromContext(context)))
 
@@ -42,7 +42,7 @@ func wrapperSingular[TEntity any, TModel any, TRequest any](c *Controller[TEntit
 		return err
 	}
 
-	collection, err := callback(&CallbackArgs[TRequest]{context: context, request: *requestParsed})
+	collection, _, err := callback(&CallbackArgs[TRequest]{context: context, request: *requestParsed})
 	if err != nil {
 		log.Warn(err.Error())
 		return err
@@ -51,7 +51,7 @@ func wrapperSingular[TEntity any, TModel any, TRequest any](c *Controller[TEntit
 	return c.FiberCtx.JSON(appmodel.WebResponse[*TModel]{Data: c.Mapper.ModelToResponse(collection)})
 }
 
-func wrapperPlural[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) ([]TEntity, int64, error)) error {
+func wrapperPlural[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) (*[]TEntity, int64, error)) error {
 	context := requestid.SetContext(c.FiberCtx.UserContext(), c.FiberCtx)
 	log := c.Log.With(zap.String("requestid", requestid.FromContext(context)))
 
@@ -66,8 +66,8 @@ func wrapperPlural[TEntity any, TModel any, TRequest any](c *Controller[TEntity,
 		return err
 	}
 
-	responses := make([]TModel, len(collections))
-	for i, collection := range collections {
+	responses := make([]TModel, len(*collections))
+	for i, collection := range *collections {
 		responses[i] = *c.Mapper.ModelToResponse(&collection)
 	}
 
