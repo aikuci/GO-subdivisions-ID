@@ -28,58 +28,79 @@ func NewCityUseCase(log *zap.Logger, db *gorm.DB, repository *repository.CityRep
 	}
 }
 
-func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDRequest[[]int]) ([]entity.City, int64, error) {
-	return wrapperPlural(
-		newUseCase[entity.City](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.ListCityByIDRequest[[]int]]) ([]entity.City, int64, error) {
+func (uc *CityUseCase) List(ctx context.Context, request model.ListCityByIDRequest[[]int]) (*[]entity.City, int64, error) {
+	callbackContext := &Context[model.ListCityByIDRequest[[]int], []entity.City]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
+	return Wrapper[entity.City](
+		callbackContext,
+		func(ctx *Context[model.ListCityByIDRequest[[]int], []entity.City]) (ContextResult[[]entity.City], error) {
+			data := ctx.Data
+
 			where := map[string]interface{}{}
-			if ca.request.ID != nil {
-				where["id"] = ca.request.ID
+			if data.Request.ID != nil {
+				where["id"] = data.Request.ID
 			}
-			if ca.request.IDProvince != nil {
-				where["id_province"] = ca.request.IDProvince
+			if data.Request.IDProvince != nil {
+				where["id_province"] = data.Request.IDProvince
 			}
-			return uc.Repository.FindAndCountBy(ca.tx, where)
+
+			collections, total, err := uc.Repository.FindAndCountBy(data.DB, where)
+			if err != nil {
+				return ContextResult[[]entity.City]{}, err
+			}
+
+			return ContextResult[[]entity.City]{Collection: collections, Total: total}, nil
 		},
 	)
 }
 
-func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDRequest[[]int]) ([]entity.City, int64, error) {
-	return wrapperPlural(
-		newUseCase[entity.City](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.GetCityByIDRequest[[]int]]) ([]entity.City, int64, error) {
+func (uc *CityUseCase) GetById(ctx context.Context, request model.GetCityByIDRequest[[]int]) (*[]entity.City, int64, error) {
+	callbackContext := &Context[model.GetCityByIDRequest[[]int], []entity.City]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
+	return Wrapper[entity.City](
+		callbackContext,
+		func(ctx *Context[model.GetCityByIDRequest[[]int], []entity.City]) (ContextResult[[]entity.City], error) {
+			data := ctx.Data
+
 			where := map[string]interface{}{}
-			if ca.request.ID != nil {
-				where["id"] = ca.request.ID
+			if data.Request.ID != nil {
+				where["id"] = data.Request.ID
 			}
-			if ca.request.IDProvince != nil {
-				where["id_province"] = ca.request.IDProvince
+			if data.Request.IDProvince != nil {
+				where["id_province"] = data.Request.IDProvince
 			}
-			return uc.Repository.FindAndCountBy(ca.tx, where)
+
+			collections, total, err := uc.Repository.FindAndCountBy(data.DB, where)
+			if err != nil {
+				return ContextResult[[]entity.City]{}, err
+			}
+
+			return ContextResult[[]entity.City]{Collection: collections, Total: total}, nil
 		},
 	)
 }
 
-func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetCityByIDRequest[int]) (*entity.City, error) {
-	return wrapperSingular(
-		newUseCase[entity.City](ctx, uc.Log, uc.DB, request),
-		func(ca *CallbackArgs[model.GetCityByIDRequest[int]]) (*entity.City, error) {
-			id := ca.request.ID
-			idProvince := ca.request.IDProvince
-			collection, err := uc.Repository.FirstByIdAndIdProvince(ca.tx, id, idProvince)
+func (uc *CityUseCase) GetFirstById(ctx context.Context, request model.GetCityByIDRequest[int]) (**entity.City, int64, error) {
+	callbackContext := &Context[model.GetCityByIDRequest[int], *entity.City]{Data: *NewContextData(ctx, uc.Log, uc.DB, request)}
+	return Wrapper[entity.City](
+		callbackContext,
+		func(ctx *Context[model.GetCityByIDRequest[int], *entity.City]) (ContextResult[*entity.City], error) {
+			data := ctx.Data
+
+			id := data.Request.ID
+			idProvince := data.Request.IDProvince
+			collection, err := uc.Repository.FirstByIdAndIdProvince(data.DB, id, idProvince)
 
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					errorMessage := fmt.Sprintf("failed to get cities data with ID: %d and ID Province: %d", id, idProvince)
-					ca.log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-					return nil, apperror.RecordNotFound(errorMessage)
+					data.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+					return ContextResult[*entity.City]{}, apperror.RecordNotFound(errorMessage)
 				}
 
-				ca.log.Warn(err.Error())
-				return nil, err
+				data.Log.Warn(err.Error())
+				return ContextResult[*entity.City]{}, err
 			}
 
-			return collection, nil
+			return ContextResult[*entity.City]{Collection: collection, Total: 1}, nil
 		},
 	)
 }
