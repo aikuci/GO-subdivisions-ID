@@ -16,9 +16,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type Context[TEntity any, TRequest any] struct {
+type Context[TRequest any, TResult any] struct {
 	Data   ContextData[TRequest]
-	Result ContextResult[TEntity]
+	Result ContextResult[TResult]
 	Err    error
 }
 
@@ -43,10 +43,18 @@ func NewContextData[TRequest any](ctx context.Context, log *zap.Logger, db *gorm
 	}
 }
 
-type Callback[TEntity any, TRequest any] func(ctx *Context[TEntity, TRequest]) (ContextResult[TEntity], error)
+type Callback[TEntity any, TRequest any, TResult any] func(ctx *Context[TRequest, TResult]) (ContextResult[TResult], error)
 
-func Wrapper[TEntity any, TRequest any](ctx *Context[TEntity, TRequest], callback Callback[TEntity, TRequest]) {
+func Process[TEntity any, TRequest any, TResult any](ctx *Context[TRequest, TResult], callback Callback[TEntity, TRequest, TResult]) {
 	ctx.Data.Log = ctx.Data.Log.With(zap.String("requestid", requestid.FromContext(ctx.Data.Ctx)))
+
+	var err error
+	ctx.Data.DB, err = addRelations(ctx.Data.Log, ctx.Data.DB, generateRelations[TEntity](ctx.Data.DB), ctx.Data.Request)
+	if err != nil {
+		ctx.Err = err
+		return
+	}
+	ctx.Data.DB = addPagination(ctx.Data.DB, ctx.Data.Request)
 
 	ctx.Data.DB = ctx.Data.DB.WithContext(ctx.Data.Ctx).Begin()
 	defer ctx.Data.DB.Rollback()
@@ -58,17 +66,17 @@ func Wrapper[TEntity any, TRequest any](ctx *Context[TEntity, TRequest], callbac
 		}
 	}()
 
-	var err error
-	ctx.Data.DB, err = addRelations(ctx.Data.Log, ctx.Data.DB, generateRelations[TEntity](ctx.Data.DB), ctx.Data.Request)
-	if err != nil {
-		ctx.Err = err
-		return
-	}
-	ctx.Data.DB = addPagination(ctx.Data.DB, ctx.Data.Request)
-
 	result, err := callback(ctx)
 	ctx.Result = result
 	ctx.Err = err
+}
+
+func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest, TResult], callback Callback[TEntity, TRequest, TResult]) (*TResult, int64, error) {
+	Process(ctx, callback)
+	if ctx.Err != nil {
+		return nil, 0, ctx.Err
+	}
+	return &ctx.Result.Collection, ctx.Result.Total, nil
 }
 
 type relations struct {
