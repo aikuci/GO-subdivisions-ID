@@ -16,15 +16,26 @@ import (
 	"gorm.io/gorm"
 )
 
-type UseCase[TEntity any, TRequest any] struct {
+type Context[TEntity any, TRequest any] struct {
+	Data   ContextData[TRequest]
+	Result ContextResult[TEntity]
+	Err    error
+}
+
+type ContextResult[T any] struct {
+	Collection T
+	Total      int64
+}
+
+type ContextData[T any] struct {
 	Ctx     context.Context
 	Log     *zap.Logger
 	DB      *gorm.DB
-	Request TRequest
+	Request T
 }
 
-func newUseCase[TEntity any, TRequest any](ctx context.Context, log *zap.Logger, db *gorm.DB, request TRequest) *UseCase[TEntity, TRequest] {
-	return &UseCase[TEntity, TRequest]{
+func NewContextData[TRequest any](ctx context.Context, log *zap.Logger, db *gorm.DB, request TRequest) *ContextData[TRequest] {
+	return &ContextData[TRequest]{
 		Ctx:     ctx,
 		Log:     log,
 		DB:      db,
@@ -32,61 +43,32 @@ func newUseCase[TEntity any, TRequest any](ctx context.Context, log *zap.Logger,
 	}
 }
 
-type CallbackArgs[T any] struct {
-	log     *zap.Logger
-	tx      *gorm.DB
-	request T
-}
+type Callback[TEntity any, TRequest any] func(ctx *Context[TEntity, TRequest]) (ContextResult[TEntity], error)
 
-func wrapperSingular[TEntity any, TRequest any](uc *UseCase[TEntity, TRequest], fc func(ca *CallbackArgs[TRequest]) (*TEntity, error)) (*TEntity, error) {
-	log := uc.Log.With(zap.String("requestid", requestid.FromContext(uc.Ctx)))
+func Wrapper[TEntity any, TRequest any](ctx *Context[TEntity, TRequest], callback Callback[TEntity, TRequest]) {
+	ctx.Data.Log = ctx.Data.Log.With(zap.String("requestid", requestid.FromContext(ctx.Data.Ctx)))
 
-	tx := uc.DB.WithContext(uc.Ctx).Begin()
-	defer tx.Rollback()
+	ctx.Data.DB = ctx.Data.DB.WithContext(ctx.Data.Ctx).Begin()
+	defer ctx.Data.DB.Rollback()
+	defer func() {
+		if err := ctx.Data.DB.Commit().Error; err != nil {
+			errorMessage := "failed to commit transaction"
+			ctx.Data.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+			ctx.Err = apperror.InternalServerError(errorMessage)
+		}
+	}()
 
-	tx, err := addRelations(log, tx, generateRelations[TEntity](uc.DB), uc.Request)
+	var err error
+	ctx.Data.DB, err = addRelations(ctx.Data.Log, ctx.Data.DB, generateRelations[TEntity](ctx.Data.DB), ctx.Data.Request)
 	if err != nil {
-		return nil, err
+		ctx.Err = err
+		return
 	}
+	ctx.Data.DB = addPagination(ctx.Data.DB, ctx.Data.Request)
 
-	collection, err := fc(&CallbackArgs[TRequest]{log: log, tx: tx, request: uc.Request})
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		errorMessage := "failed to commit transaction"
-		log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-		return nil, apperror.InternalServerError(errorMessage)
-	}
-
-	return collection, nil
-}
-
-func wrapperPlural[TEntity any, TRequest any](uc *UseCase[TEntity, TRequest], fc func(ca *CallbackArgs[TRequest]) ([]TEntity, int64, error)) ([]TEntity, int64, error) {
-	log := uc.Log.With(zap.String("requestid", requestid.FromContext(uc.Ctx)))
-
-	tx := uc.DB.WithContext(uc.Ctx).Begin()
-	defer tx.Rollback()
-
-	tx, err := addRelations(log, tx, generateRelations[TEntity](uc.DB), uc.Request)
-	if err != nil {
-		return nil, 0, err
-	}
-	tx = addPagination(tx, uc.Request)
-
-	collections, total, err := fc(&CallbackArgs[TRequest]{log: log, tx: tx, request: uc.Request})
-	if err != nil {
-		return nil, 0, err
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		errorMessage := "failed to commit transaction"
-		log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-		return nil, 0, apperror.InternalServerError(errorMessage)
-	}
-
-	return collections, total, nil
+	result, err := callback(ctx)
+	ctx.Result = result
+	ctx.Err = err
 }
 
 type relations struct {
