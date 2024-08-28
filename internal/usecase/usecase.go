@@ -16,26 +16,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type Context[TRequest any, TResult any] struct {
-	Data   ContextData[TRequest]
-	Result ContextResult[TResult]
-	Err    error
-}
-
-type ContextResult[T any] struct {
-	Collection T
-	Total      int64
-}
-
-type ContextData[T any] struct {
+type UseCaseContext[T any] struct {
 	Ctx     context.Context
 	Log     *zap.Logger
 	DB      *gorm.DB
 	Request T
 }
 
-func NewContextData[TRequest any](ctx context.Context, log *zap.Logger, db *gorm.DB, request TRequest) *ContextData[TRequest] {
-	return &ContextData[TRequest]{
+func NewContext[T any](ctx context.Context, log *zap.Logger, db *gorm.DB, request T) *UseCaseContext[T] {
+	return &UseCaseContext[T]{
 		Ctx:     ctx,
 		Log:     log,
 		DB:      db,
@@ -43,40 +32,33 @@ func NewContextData[TRequest any](ctx context.Context, log *zap.Logger, db *gorm
 	}
 }
 
-type Callback[TEntity any, TRequest any, TResult any] func(ctx *Context[TRequest, TResult]) (ContextResult[TResult], error)
+type Callback[TEntity any, TRequest any, TResult any] func(ctx *UseCaseContext[TRequest]) (*TResult, int64, error)
 
-func Process[TEntity any, TRequest any, TResult any](ctx *Context[TRequest, TResult], callback Callback[TEntity, TRequest, TResult]) {
-	ctx.Data.Log = ctx.Data.Log.With(zap.String("requestid", requestid.FromContext(ctx.Data.Ctx)))
+func Wrapper[TEntity any, TRequest any, TResult any](ctx *UseCaseContext[TRequest], callback Callback[TEntity, TRequest, TResult]) (*TResult, int64, error) {
+	ctx.Log = ctx.Log.With(zap.String("requestid", requestid.FromContext(ctx.Ctx)))
 
 	var err error
-	ctx.Data.DB, err = addRelations(ctx.Data.Log, ctx.Data.DB, generateRelations[TEntity](ctx.Data.DB), ctx.Data.Request)
+	ctx.DB, err = addRelations(ctx.Log, ctx.DB, generateRelations[TEntity](ctx.DB), ctx.Request)
 	if err != nil {
-		ctx.Err = err
-		return
+		return nil, 0, err
 	}
-	ctx.Data.DB = addPagination(ctx.Data.DB, ctx.Data.Request)
+	ctx.DB = addPagination(ctx.DB, ctx.Request)
 
-	ctx.Data.DB = ctx.Data.DB.WithContext(ctx.Data.Ctx).Begin()
-	defer ctx.Data.DB.Rollback()
-	defer func() {
-		if err := ctx.Data.DB.Commit().Error; err != nil {
-			errorMessage := "failed to commit transaction"
-			ctx.Data.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-			ctx.Err = apperror.InternalServerError(errorMessage)
-		}
-	}()
+	ctx.DB = ctx.DB.WithContext(ctx.Ctx).Begin()
+	defer ctx.DB.Rollback()
 
-	result, err := callback(ctx)
-	ctx.Result = result
-	ctx.Err = err
-}
-
-func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest, TResult], callback Callback[TEntity, TRequest, TResult]) (*TResult, int64, error) {
-	Process(ctx, callback)
-	if ctx.Err != nil {
-		return nil, 0, ctx.Err
+	collections, total, err := callback(ctx)
+	if err != nil {
+		return nil, 0, err
 	}
-	return &ctx.Result.Collection, ctx.Result.Total, nil
+
+	if err := ctx.DB.Commit().Error; err != nil {
+		errorMessage := "failed to commit transaction"
+		ctx.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+		return nil, 0, apperror.InternalServerError(errorMessage)
+	}
+
+	return collections, total, nil
 }
 
 type relations struct {
