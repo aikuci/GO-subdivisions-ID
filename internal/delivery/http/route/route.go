@@ -4,6 +4,7 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http"
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
+	apphttp "github.com/aikuci/go-subdivisions-id/pkg/delivery/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
@@ -14,7 +15,7 @@ import (
 type RouteConfig struct {
 	App                *fiber.App
 	DB                 *gorm.DB
-	ProvinceController *http.CrudController[entity.Province, model.ProvinceResponse]
+	ProvinceController *apphttp.CrudController[entity.Province, model.ProvinceResponse]
 	CityController     *http.CityController
 	DistrictController *http.DistrictController
 }
