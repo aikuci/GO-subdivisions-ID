@@ -25,28 +25,28 @@ func NewCityController(log *zap.Logger, useCase *usecase.CityUseCase, mapper app
 }
 
 func (c *CityController) List(ctx *fiber.Ctx) error {
-	return wrapperPlural(
-		newController[entity.City, model.CityResponse, model.ListCityByIDRequest[[]int]](c.Log, ctx, c.Mapper),
-		func(ca *CallbackArgs[model.ListCityByIDRequest[[]int]]) (*[]entity.City, int64, error) {
-			return c.UseCase.List(ca.context, ca.request)
+	return Wrapper(
+		NewContext[model.ListCityByIDRequest[[]int]](c.Log, ctx, c.Mapper),
+		func(ctx *ControllerContext[model.ListCityByIDRequest[[]int], entity.City, model.CityResponse]) (any, int64, error) {
+			return c.UseCase.List(ctx.Ctx, ctx.Request)
 		},
 	)
 }
 
 func (c *CityController) GetById(ctx *fiber.Ctx) error {
-	return wrapperPlural(
-		newController[entity.City, model.CityResponse, model.GetCityByIDRequest[[]int]](c.Log, ctx, c.Mapper),
-		func(ca *CallbackArgs[model.GetCityByIDRequest[[]int]]) (*[]entity.City, int64, error) {
-			return c.UseCase.GetById(ca.context, ca.request)
+	return Wrapper(
+		NewContext[model.GetCityByIDRequest[[]int]](c.Log, ctx, c.Mapper),
+		func(ctx *ControllerContext[model.GetCityByIDRequest[[]int], entity.City, model.CityResponse]) (any, int64, error) {
+			return c.UseCase.GetById(ctx.Ctx, ctx.Request)
 		},
 	)
 }
 
 func (c *CityController) GetFirstById(ctx *fiber.Ctx) error {
-	return wrapperSingular(
-		newController[entity.City, model.CityResponse, model.GetCityByIDRequest[int]](c.Log, ctx, c.Mapper),
-		func(ca *CallbackArgs[model.GetCityByIDRequest[int]]) (*entity.City, int64, error) {
-			return c.UseCase.GetFirstById(ca.context, ca.request)
+	return Wrapper(
+		NewContext[model.GetCityByIDRequest[int]](c.Log, ctx, c.Mapper),
+		func(ctx *ControllerContext[model.GetCityByIDRequest[int], entity.City, model.CityResponse]) (any, int64, error) {
+			return c.UseCase.GetFirstById(ctx.Ctx, ctx.Request)
 		},
 	)
 }

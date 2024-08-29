@@ -25,29 +25,28 @@ func NewDistrictController(log *zap.Logger, useCase *usecase.DistrictUseCase, ma
 }
 
 func (c *DistrictController) List(ctx *fiber.Ctx) error {
-	return wrapperPlural(
-		newController[entity.District, model.DistrictResponse, model.ListDistrictByIDRequest[[]int]](c.Log, ctx, c.Mapper),
-		func(ca *CallbackArgs[model.ListDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
-			return c.UseCase.List(ca.context, ca.request)
+	return Wrapper(
+		NewContext[model.ListDistrictByIDRequest[[]int]](c.Log, ctx, c.Mapper),
+		func(ctx *ControllerContext[model.ListDistrictByIDRequest[[]int], entity.District, model.DistrictResponse]) (any, int64, error) {
+			return c.UseCase.List(ctx.Ctx, ctx.Request)
 		},
 	)
 }
 
 func (c *DistrictController) GetById(ctx *fiber.Ctx) error {
-
-	return wrapperPlural(
-		newController[entity.District, model.DistrictResponse, model.GetDistrictByIDRequest[[]int]](c.Log, ctx, c.Mapper),
-		func(ca *CallbackArgs[model.GetDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
-			return c.UseCase.GetById(ca.context, ca.request)
+	return Wrapper(
+		NewContext[model.GetDistrictByIDRequest[[]int]](c.Log, ctx, c.Mapper),
+		func(ctx *ControllerContext[model.GetDistrictByIDRequest[[]int], entity.District, model.DistrictResponse]) (any, int64, error) {
+			return c.UseCase.GetById(ctx.Ctx, ctx.Request)
 		},
 	)
 }
 
 func (c *DistrictController) GetFirstById(ctx *fiber.Ctx) error {
-	return wrapperSingular(
-		newController[entity.District, model.DistrictResponse, model.GetDistrictByIDRequest[int]](c.Log, ctx, c.Mapper),
-		func(ca *CallbackArgs[model.GetDistrictByIDRequest[int]]) (*entity.District, int64, error) {
-			return c.UseCase.GetFirstById(ca.context, ca.request)
+	return Wrapper(
+		NewContext[model.GetDistrictByIDRequest[int]](c.Log, ctx, c.Mapper),
+		func(ctx *ControllerContext[model.GetDistrictByIDRequest[int], entity.District, model.DistrictResponse]) (any, int64, error) {
+			return c.UseCase.GetFirstById(ctx.Ctx, ctx.Request)
 		},
 	)
 }
