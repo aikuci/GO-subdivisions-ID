@@ -6,9 +6,9 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
-	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
-	appmapper "github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
+	"github.com/aikuci/go-subdivisions-id/pkg/delivery/http/middleware/requestid"
+	"github.com/aikuci/go-subdivisions-id/pkg/model"
+	"github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"github.com/gofiber/fiber/v2"
@@ -25,11 +25,11 @@ type ControllerContext[TRequest any, TEntity any, TModel any] struct {
 	Ctx      context.Context
 	FiberCtx *fiber.Ctx
 	Request  TRequest
-	Mapper   appmapper.CruderMapper[TEntity, TModel]
+	Mapper   mapper.CruderMapper[TEntity, TModel]
 	Data     ControllerContextData
 }
 
-func NewContext[TRequest any, TEntity any, TModel any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper appmapper.CruderMapper[TEntity, TModel]) *ControllerContext[TRequest, TEntity, TModel] {
+func NewContext[TRequest any, TEntity any, TModel any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper mapper.CruderMapper[TEntity, TModel]) *ControllerContext[TRequest, TEntity, TModel] {
 	return &ControllerContext[TRequest, TEntity, TModel]{
 		Log:      log,
 		FiberCtx: fiberCtx,
@@ -76,9 +76,9 @@ func buildResponse[TRequest any, TEntity any, TModel any](ctx *ControllerContext
 		}
 
 		return ctx.FiberCtx.JSON(
-			appmodel.WebResponse[[]TModel]{
+			model.WebResponse[[]TModel]{
 				Data: responses,
-				Meta: &appmodel.Meta{
+				Meta: &model.Meta{
 					Page: generatePageMeta(ctx.Request, data.total),
 				},
 			},
@@ -92,7 +92,7 @@ func buildResponse[TRequest any, TEntity any, TModel any](ctx *ControllerContext
 		return apperror.InternalServerError(errorMessage)
 	}
 	return ctx.FiberCtx.JSON(
-		appmodel.WebResponse[TModel]{
+		model.WebResponse[TModel]{
 			Data: *ctx.Mapper.ModelToResponse(item),
 		},
 	)
@@ -119,12 +119,12 @@ func parseRequest(ctx *fiber.Ctx, request any) error {
 	return nil
 }
 
-func generatePageMeta(request any, total int64) *appmodel.PageMetadata {
+func generatePageMeta(request any, total int64) *model.PageMetadata {
 	r := reflect.ValueOf(request)
 	for i := 0; i < r.NumField(); i++ {
-		if pagination, ok := r.Field(i).Interface().(appmodel.PageRequest); ok {
+		if pagination, ok := r.Field(i).Interface().(model.PageRequest); ok {
 			if pagination.Page > 0 && pagination.Size > 0 {
-				return &appmodel.PageMetadata{
+				return &model.PageMetadata{
 					Page:      pagination.Page,
 					Size:      pagination.Size,
 					TotalItem: total,
