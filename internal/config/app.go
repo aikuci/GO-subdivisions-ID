@@ -31,16 +31,19 @@ func Bootstrap(config *BootstrapConfig) {
 	provinceRepository := apprepository.NewCrudRepository[entity.Province, int, []int]()
 	cityRepository := repository.NewCityRepository[int, []int]()
 	districtRepository := repository.NewDistrictRepository[int, []int]()
+	villageRepository := repository.NewVillageRepository[int, []int]()
 
 	// setup use cases
 	provinceUseCase := appusecase.NewCrudUseCase(config.Log, config.DB, provinceRepository)
 	cityUseCase := usecase.NewCityUseCase(config.Log, config.DB, cityRepository)
 	districtUseCase := usecase.NewDistrictUseCase(config.Log, config.DB, districtRepository)
+	villageUseCase := usecase.NewVillageUseCase(config.Log, config.DB, villageRepository)
 
 	// setup controllers
 	provinceController := apphttp.NewCrudController(config.Log, provinceUseCase, mapper.NewProvinceMapper())
 	cityController := http.NewCityController(config.Log, cityUseCase, mapper.NewCityMapper())
 	districtController := http.NewDistrictController(config.Log, districtUseCase, mapper.NewDistrictMapper())
+	villageController := http.NewVillageController(config.Log, villageUseCase, mapper.NewVillageMapper())
 
 	routeConfig := route.RouteConfig{
 		App:                config.App,
@@ -48,6 +51,7 @@ func Bootstrap(config *BootstrapConfig) {
 		ProvinceController: provinceController,
 		CityController:     cityController,
 		DistrictController: districtController,
+		VillageController:  villageController,
 	}
 	routeConfig.Setup()
 }
