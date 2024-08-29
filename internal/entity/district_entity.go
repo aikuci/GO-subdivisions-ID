@@ -14,5 +14,5 @@ type District struct {
 }
 
 func (p *District) TableName() string {
-	return "district"
+	return "districts"
 }

@@ -13,5 +13,5 @@ type City struct {
 }
 
 func (p *City) TableName() string {
-	return "city"
+	return "cities"
 }
