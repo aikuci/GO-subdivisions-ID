@@ -18,6 +18,7 @@ type RouteConfig struct {
 	ProvinceController *apphttp.CrudController[entity.Province, model.ProvinceResponse]
 	CityController     *http.CityController
 	DistrictController *http.DistrictController
+	VillageController  *http.VillageController
 }
 
 func (c *RouteConfig) Setup() {
