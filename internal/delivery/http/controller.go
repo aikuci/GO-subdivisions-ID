@@ -2,76 +2,100 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"reflect"
 
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
 	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
 	appmapper "github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
+	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
-type Controller[TEntity any, TModel any, TRequest any] struct {
-	Log      *zap.Logger
-	FiberCtx *fiber.Ctx
-	Mapper   appmapper.CruderMapper[TEntity, TModel]
-	Request  TRequest
+type ControllerContextData struct {
+	collection any
+	total      int64
 }
 
-func newController[TEntity any, TModel any, TRequest any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper appmapper.CruderMapper[TEntity, TModel]) *Controller[TEntity, TModel, TRequest] {
-	return &Controller[TEntity, TModel, TRequest]{
+type ControllerContext[TRequest any, TEntity any, TModel any] struct {
+	Log      *zap.Logger
+	Ctx      context.Context
+	FiberCtx *fiber.Ctx
+	Request  TRequest
+	Mapper   appmapper.CruderMapper[TEntity, TModel]
+	Data     ControllerContextData
+}
+
+func NewContext[TRequest any, TEntity any, TModel any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper appmapper.CruderMapper[TEntity, TModel]) *ControllerContext[TRequest, TEntity, TModel] {
+	return &ControllerContext[TRequest, TEntity, TModel]{
 		Log:      log,
 		FiberCtx: fiberCtx,
 		Mapper:   mapper,
 	}
 }
 
-type CallbackArgs[T any] struct {
-	context context.Context
-	request T
-}
+type Callback[TRequest any, TEntity any, TModel any] func(ctx *ControllerContext[TRequest, TEntity, TModel]) (any, int64, error)
 
-func wrapperSingular[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) (*TEntity, int64, error)) error {
-	context := requestid.SetContext(c.FiberCtx.UserContext(), c.FiberCtx)
-	log := c.Log.With(zap.String("requestid", requestid.FromContext(context)))
+func Wrapper[TRequest any, TEntity any, TModel any](ctx *ControllerContext[TRequest, TEntity, TModel], callback Callback[TRequest, TEntity, TModel]) error {
+	ctx.Ctx = requestid.SetContext(ctx.FiberCtx.UserContext(), ctx.FiberCtx)
+	ctx.Log = ctx.Log.With(zap.String("requestid", requestid.FromContext(ctx.Ctx)))
 
 	requestParsed := new(TRequest)
-	if err := parseRequest(c.FiberCtx, requestParsed); err != nil {
+	if err := parseRequest(ctx.FiberCtx, requestParsed); err != nil {
 		return err
 	}
+	ctx.Request = *requestParsed
 
-	collection, _, err := callback(&CallbackArgs[TRequest]{context: context, request: *requestParsed})
+	collection, total, err := callback(ctx)
 	if err != nil {
-		log.Warn(err.Error())
+		ctx.Log.Warn(err.Error())
 		return err
 	}
 
-	return c.FiberCtx.JSON(appmodel.WebResponse[*TModel]{Data: c.Mapper.ModelToResponse(collection)})
+	ctx.Data = ControllerContextData{collection: collection, total: total}
+	return buildResponse(ctx)
 }
 
-func wrapperPlural[TEntity any, TModel any, TRequest any](c *Controller[TEntity, TModel, TRequest], callback func(ca *CallbackArgs[TRequest]) (*[]TEntity, int64, error)) error {
-	context := requestid.SetContext(c.FiberCtx.UserContext(), c.FiberCtx)
-	log := c.Log.With(zap.String("requestid", requestid.FromContext(context)))
+func buildResponse[TRequest any, TEntity any, TModel any](ctx *ControllerContext[TRequest, TEntity, TModel]) error {
+	data := ctx.Data
 
-	requestParsed := new(TRequest)
-	if err := parseRequest(c.FiberCtx, requestParsed); err != nil {
-		return err
+	collectionValue := reflect.ValueOf(data.collection).Elem()
+	if collectionValue.Kind() == reflect.Slice {
+		responses := make([]TModel, collectionValue.Len())
+		for i := 0; i < collectionValue.Len(); i++ {
+			item, ok := collectionValue.Index(i).Interface().(TEntity)
+			if !ok {
+				errorMessage := fmt.Sprintf("element at index %d in collection is not of type %T", i, (*TEntity)(nil))
+				ctx.Log.Warn(errorMessage)
+				return apperror.InternalServerError(errorMessage)
+			}
+			responses[i] = *ctx.Mapper.ModelToResponse(&item)
+		}
+
+		return ctx.FiberCtx.JSON(
+			appmodel.WebResponse[[]TModel]{
+				Data: responses,
+				Meta: &appmodel.Meta{
+					Page: generatePageMeta(ctx.Request, data.total),
+				},
+			},
+		)
 	}
 
-	collections, total, err := callback(&CallbackArgs[TRequest]{context: context, request: *requestParsed})
-	if err != nil {
-		log.Warn(err.Error())
-		return err
+	item, ok := data.collection.(*TEntity)
+	if !ok {
+		errorMessage := fmt.Sprintf("collection is not of type %T", (*TEntity)(nil))
+		ctx.Log.Warn(errorMessage)
+		return apperror.InternalServerError(errorMessage)
 	}
-
-	responses := make([]TModel, len(*collections))
-	for i, collection := range *collections {
-		responses[i] = *c.Mapper.ModelToResponse(&collection)
-	}
-
-	return c.FiberCtx.JSON(appmodel.WebResponse[[]TModel]{Data: responses, Meta: &appmodel.Meta{Page: generatePageMeta(requestParsed, total)}})
+	return ctx.FiberCtx.JSON(
+		appmodel.WebResponse[TModel]{
+			Data: *ctx.Mapper.ModelToResponse(item),
+		},
+	)
 }
 
 func parseRequest(ctx *fiber.Ctx, request any) error {
@@ -96,7 +120,7 @@ func parseRequest(ctx *fiber.Ctx, request any) error {
 }
 
 func generatePageMeta(request any, total int64) *appmodel.PageMetadata {
-	r := reflect.ValueOf(request).Elem()
+	r := reflect.ValueOf(request)
 	for i := 0; i < r.NumField(); i++ {
 		if pagination, ok := r.Field(i).Interface().(appmodel.PageRequest); ok {
 			if pagination.Page > 0 && pagination.Size > 0 {
