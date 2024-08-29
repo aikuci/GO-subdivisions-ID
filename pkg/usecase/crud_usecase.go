@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
-	apprepository "github.com/aikuci/go-subdivisions-id/pkg/repository"
+	"github.com/aikuci/go-subdivisions-id/pkg/model"
+	"github.com/aikuci/go-subdivisions-id/pkg/repository"
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"go.uber.org/zap"
@@ -14,18 +14,18 @@ import (
 )
 
 type CruderUseCase[T any] interface {
-	List(ctx context.Context, request appmodel.ListRequest) (*[]T, int64, error)
-	GetById(ctx context.Context, request appmodel.GetByIDRequest[int]) (*[]T, int64, error)
-	GetFirstById(ctx context.Context, request appmodel.GetByIDRequest[int]) (*T, int64, error)
+	List(ctx context.Context, request model.ListRequest) (*[]T, int64, error)
+	GetById(ctx context.Context, request model.GetByIDRequest[int]) (*[]T, int64, error)
+	GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, int64, error)
 }
 
 type CrudUseCase[T any] struct {
 	Log        *zap.Logger
 	DB         *gorm.DB
-	Repository apprepository.CruderRepository[T]
+	Repository repository.CruderRepository[T]
 }
 
-func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository apprepository.CruderRepository[T]) *CrudUseCase[T] {
+func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T]) *CrudUseCase[T] {
 	return &CrudUseCase[T]{
 		Log:        log,
 		DB:         db,
@@ -33,30 +33,30 @@ func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository apprepositor
 	}
 }
 
-func (uc *CrudUseCase[T]) List(ctx context.Context, request appmodel.ListRequest) (*[]T, int64, error) {
+func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) (*[]T, int64, error) {
 	return Wrapper[T](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[appmodel.ListRequest]) (*[]T, int64, error) {
+		func(ctx *UseCaseContext[model.ListRequest]) (*[]T, int64, error) {
 			collections, total, err := uc.Repository.FindAndCount(ctx.DB)
 			return &collections, total, err
 		},
 	)
 }
 
-func (uc *CrudUseCase[T]) GetById(ctx context.Context, request appmodel.GetByIDRequest[int]) (*[]T, int64, error) {
+func (uc *CrudUseCase[T]) GetById(ctx context.Context, request model.GetByIDRequest[int]) (*[]T, int64, error) {
 	return Wrapper[T](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[appmodel.GetByIDRequest[int]]) (*[]T, int64, error) {
+		func(ctx *UseCaseContext[model.GetByIDRequest[int]]) (*[]T, int64, error) {
 			collections, total, err := uc.Repository.FindAndCountById(ctx.DB, ctx.Request.ID)
 			return &collections, total, err
 		},
 	)
 }
 
-func (uc *CrudUseCase[T]) GetFirstById(ctx context.Context, request appmodel.GetByIDRequest[int]) (*T, int64, error) {
+func (uc *CrudUseCase[T]) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, int64, error) {
 	return Wrapper[T](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[appmodel.GetByIDRequest[int]]) (*T, int64, error) {
+		func(ctx *UseCaseContext[model.GetByIDRequest[int]]) (*T, int64, error) {
 			id := ctx.Request.ID
 
 			collection, err := uc.Repository.FirstById(ctx.DB, id)

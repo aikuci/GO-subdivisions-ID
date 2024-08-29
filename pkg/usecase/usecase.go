@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/middleware/requestid"
-	appmodel "github.com/aikuci/go-subdivisions-id/pkg/model"
+	"github.com/aikuci/go-subdivisions-id/pkg/delivery/http/middleware/requestid"
+	"github.com/aikuci/go-subdivisions-id/pkg/model"
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 	"github.com/aikuci/go-subdivisions-id/pkg/util/slice"
 
@@ -125,7 +125,7 @@ func addRelations(log *zap.Logger, db *gorm.DB, relations *relations, request an
 func addPagination(db *gorm.DB, request any) *gorm.DB {
 	r := reflect.ValueOf(request)
 	for i := 0; i < r.NumField(); i++ {
-		if pagination, ok := r.Field(i).Interface().(appmodel.PageRequest); ok {
+		if pagination, ok := r.Field(i).Interface().(model.PageRequest); ok {
 			if pagination.Page > 0 && pagination.Size > 0 {
 				offset := (pagination.Page - 1) * pagination.Size
 				return db.Offset(offset).Limit(pagination.Size)
