@@ -11,42 +11,42 @@ import (
 	"go.uber.org/zap"
 )
 
-type CityHandler struct {
+type City struct {
 	Log     *zap.Logger
-	UseCase usecase.CityUseCase
+	UseCase usecase.City
 	Mapper  appmapper.CruderMapper[entity.City, model.CityResponse]
 }
 
-func NewCityHandler(log *zap.Logger, useCase *usecase.CityUseCase, mapper appmapper.CruderMapper[entity.City, model.CityResponse]) *CityHandler {
-	return &CityHandler{
+func NewCity(log *zap.Logger, useCase *usecase.City, mapper appmapper.CruderMapper[entity.City, model.CityResponse]) *City {
+	return &City{
 		Log:     log,
 		UseCase: *useCase,
 		Mapper:  mapper,
 	}
 }
 
-func (c *CityHandler) List(ctx *fiber.Ctx) error {
+func (c *City) List(ctx *fiber.Ctx) error {
 	return apphandler.Wrapper(
 		apphandler.NewContext[model.ListCityByIDRequest[[]int]](c.Log, ctx, c.Mapper),
-		func(ctx *apphandler.HandlerContext[model.ListCityByIDRequest[[]int], entity.City, model.CityResponse]) (any, int64, error) {
+		func(ctx *apphandler.Context[model.ListCityByIDRequest[[]int], entity.City, model.CityResponse]) (any, int64, error) {
 			return c.UseCase.List(ctx.Ctx, ctx.Request)
 		},
 	)
 }
 
-func (c *CityHandler) GetById(ctx *fiber.Ctx) error {
+func (c *City) GetById(ctx *fiber.Ctx) error {
 	return apphandler.Wrapper(
 		apphandler.NewContext[model.GetCityByIDRequest[[]int]](c.Log, ctx, c.Mapper),
-		func(ctx *apphandler.HandlerContext[model.GetCityByIDRequest[[]int], entity.City, model.CityResponse]) (any, int64, error) {
+		func(ctx *apphandler.Context[model.GetCityByIDRequest[[]int], entity.City, model.CityResponse]) (any, int64, error) {
 			return c.UseCase.GetById(ctx.Ctx, ctx.Request)
 		},
 	)
 }
 
-func (c *CityHandler) GetFirstById(ctx *fiber.Ctx) error {
+func (c *City) GetFirstById(ctx *fiber.Ctx) error {
 	return apphandler.Wrapper(
 		apphandler.NewContext[model.GetCityByIDRequest[int]](c.Log, ctx, c.Mapper),
-		func(ctx *apphandler.HandlerContext[model.GetCityByIDRequest[int], entity.City, model.CityResponse]) (any, int64, error) {
+		func(ctx *apphandler.Context[model.GetCityByIDRequest[int], entity.City, model.CityResponse]) (any, int64, error) {
 			return c.UseCase.GetFirstById(ctx.Ctx, ctx.Request)
 		},
 	)

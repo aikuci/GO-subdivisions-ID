@@ -15,31 +15,31 @@ import (
 	"go.uber.org/zap"
 )
 
-type HandlerContextData struct {
+type ContextData struct {
 	collection any
 	total      int64
 }
 
-type HandlerContext[TRequest any, TEntity any, TModel any] struct {
+type Context[TRequest any, TEntity any, TModel any] struct {
 	Log      *zap.Logger
 	Ctx      context.Context
 	FiberCtx *fiber.Ctx
 	Request  TRequest
 	Mapper   mapper.CruderMapper[TEntity, TModel]
-	Data     HandlerContextData
+	Data     ContextData
 }
 
-func NewContext[TRequest any, TEntity any, TModel any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper mapper.CruderMapper[TEntity, TModel]) *HandlerContext[TRequest, TEntity, TModel] {
-	return &HandlerContext[TRequest, TEntity, TModel]{
+func NewContext[TRequest any, TEntity any, TModel any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper mapper.CruderMapper[TEntity, TModel]) *Context[TRequest, TEntity, TModel] {
+	return &Context[TRequest, TEntity, TModel]{
 		Log:      log,
 		FiberCtx: fiberCtx,
 		Mapper:   mapper,
 	}
 }
 
-type Callback[TRequest any, TEntity any, TModel any] func(ctx *HandlerContext[TRequest, TEntity, TModel]) (any, int64, error)
+type Callback[TRequest any, TEntity any, TModel any] func(ctx *Context[TRequest, TEntity, TModel]) (any, int64, error)
 
-func Wrapper[TRequest any, TEntity any, TModel any](ctx *HandlerContext[TRequest, TEntity, TModel], callback Callback[TRequest, TEntity, TModel]) error {
+func Wrapper[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEntity, TModel], callback Callback[TRequest, TEntity, TModel]) error {
 	ctx.Ctx = requestid.SetContext(ctx.FiberCtx.UserContext(), ctx.FiberCtx)
 	ctx.Log = ctx.Log.With(zap.String("requestid", requestid.FromContext(ctx.Ctx)))
 
@@ -55,11 +55,11 @@ func Wrapper[TRequest any, TEntity any, TModel any](ctx *HandlerContext[TRequest
 		return err
 	}
 
-	ctx.Data = HandlerContextData{collection: collection, total: total}
+	ctx.Data = ContextData{collection: collection, total: total}
 	return buildResponse(ctx)
 }
 
-func buildResponse[TRequest any, TEntity any, TModel any](ctx *HandlerContext[TRequest, TEntity, TModel]) error {
+func buildResponse[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEntity, TModel]) error {
 	data := ctx.Data
 
 	collectionValue := reflect.ValueOf(data.collection).Elem()

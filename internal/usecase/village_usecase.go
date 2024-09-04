@@ -15,24 +15,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type VillageUseCase struct {
+type Village struct {
 	Log        *zap.Logger
 	DB         *gorm.DB
-	Repository repository.VillageRepository[int, []int]
+	Repository repository.Village[int, []int]
 }
 
-func NewVillageUseCase(log *zap.Logger, db *gorm.DB, repository *repository.VillageRepository[int, []int]) *VillageUseCase {
-	return &VillageUseCase{
+func NewVillage(log *zap.Logger, db *gorm.DB, repository *repository.Village[int, []int]) *Village {
+	return &Village{
 		Log:        log,
 		DB:         db,
 		Repository: *repository,
 	}
 }
 
-func (uc *VillageUseCase) List(ctx context.Context, request model.ListVillageByIDRequest[[]int]) (*[]entity.Village, int64, error) {
+func (uc *Village) List(ctx context.Context, request model.ListVillageByIDRequest[[]int]) (*[]entity.Village, int64, error) {
 	return appusecase.Wrapper[entity.Village](
 		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *appusecase.UseCaseContext[model.ListVillageByIDRequest[[]int]]) (*[]entity.Village, int64, error) {
+		func(ctx *appusecase.Context[model.ListVillageByIDRequest[[]int]]) (*[]entity.Village, int64, error) {
 			where := map[string]interface{}{}
 			if ctx.Request.ID != nil {
 				where["id"] = ctx.Request.ID
@@ -53,10 +53,10 @@ func (uc *VillageUseCase) List(ctx context.Context, request model.ListVillageByI
 	)
 }
 
-func (uc *VillageUseCase) GetById(ctx context.Context, request model.GetVillageByIDRequest[[]int]) (*[]entity.Village, int64, error) {
+func (uc *Village) GetById(ctx context.Context, request model.GetVillageByIDRequest[[]int]) (*[]entity.Village, int64, error) {
 	return appusecase.Wrapper[entity.Village](
 		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *appusecase.UseCaseContext[model.GetVillageByIDRequest[[]int]]) (*[]entity.Village, int64, error) {
+		func(ctx *appusecase.Context[model.GetVillageByIDRequest[[]int]]) (*[]entity.Village, int64, error) {
 			where := map[string]interface{}{}
 			if ctx.Request.ID != nil {
 				where["id"] = ctx.Request.ID
@@ -74,10 +74,10 @@ func (uc *VillageUseCase) GetById(ctx context.Context, request model.GetVillageB
 	)
 }
 
-func (uc *VillageUseCase) GetFirstById(ctx context.Context, request model.GetVillageByIDRequest[int]) (*entity.Village, int64, error) {
+func (uc *Village) GetFirstById(ctx context.Context, request model.GetVillageByIDRequest[int]) (*entity.Village, int64, error) {
 	return appusecase.Wrapper[entity.Village](
 		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *appusecase.UseCaseContext[model.GetVillageByIDRequest[int]]) (*entity.Village, int64, error) {
+		func(ctx *appusecase.Context[model.GetVillageByIDRequest[int]]) (*entity.Village, int64, error) {
 			id := ctx.Request.ID
 			idDistrict := ctx.Request.IDDistrict
 			idCity := ctx.Request.IDCity

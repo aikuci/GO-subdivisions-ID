@@ -15,24 +15,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type DistrictUseCase struct {
+type District struct {
 	Log        *zap.Logger
 	DB         *gorm.DB
-	Repository repository.DistrictRepository[int, []int]
+	Repository repository.District[int, []int]
 }
 
-func NewDistrictUseCase(log *zap.Logger, db *gorm.DB, repository *repository.DistrictRepository[int, []int]) *DistrictUseCase {
-	return &DistrictUseCase{
+func NewDistrict(log *zap.Logger, db *gorm.DB, repository *repository.District[int, []int]) *District {
+	return &District{
 		Log:        log,
 		DB:         db,
 		Repository: *repository,
 	}
 }
 
-func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictByIDRequest[[]int]) (*[]entity.District, int64, error) {
+func (uc *District) List(ctx context.Context, request model.ListDistrictByIDRequest[[]int]) (*[]entity.District, int64, error) {
 	return appusecase.Wrapper[entity.District](
 		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *appusecase.UseCaseContext[model.ListDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
+		func(ctx *appusecase.Context[model.ListDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
 			where := map[string]interface{}{}
 			if ctx.Request.ID != nil {
 				where["id"] = ctx.Request.ID
@@ -50,10 +50,10 @@ func (uc *DistrictUseCase) List(ctx context.Context, request model.ListDistrictB
 	)
 }
 
-func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistrictByIDRequest[[]int]) (*[]entity.District, int64, error) {
+func (uc *District) GetById(ctx context.Context, request model.GetDistrictByIDRequest[[]int]) (*[]entity.District, int64, error) {
 	return appusecase.Wrapper[entity.District](
 		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *appusecase.UseCaseContext[model.GetDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
+		func(ctx *appusecase.Context[model.GetDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
 			where := map[string]interface{}{}
 			if ctx.Request.ID != nil {
 				where["id"] = ctx.Request.ID
@@ -71,10 +71,10 @@ func (uc *DistrictUseCase) GetById(ctx context.Context, request model.GetDistric
 	)
 }
 
-func (uc *DistrictUseCase) GetFirstById(ctx context.Context, request model.GetDistrictByIDRequest[int]) (*entity.District, int64, error) {
+func (uc *District) GetFirstById(ctx context.Context, request model.GetDistrictByIDRequest[int]) (*entity.District, int64, error) {
 	return appusecase.Wrapper[entity.District](
 		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *appusecase.UseCaseContext[model.GetDistrictByIDRequest[int]]) (*entity.District, int64, error) {
+		func(ctx *appusecase.Context[model.GetDistrictByIDRequest[int]]) (*entity.District, int64, error) {
 			id := ctx.Request.ID
 			idCity := ctx.Request.IDCity
 			idProvince := ctx.Request.IDProvince

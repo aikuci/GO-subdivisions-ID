@@ -19,44 +19,44 @@ type CruderUseCase[T any] interface {
 	GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, int64, error)
 }
 
-type CrudUseCase[T any] struct {
+type Crud[T any] struct {
 	Log        *zap.Logger
 	DB         *gorm.DB
 	Repository repository.CruderRepository[T]
 }
 
-func NewCrudUseCase[T any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T]) *CrudUseCase[T] {
-	return &CrudUseCase[T]{
+func NewCrud[T any](log *zap.Logger, db *gorm.DB, repository repository.CruderRepository[T]) *Crud[T] {
+	return &Crud[T]{
 		Log:        log,
 		DB:         db,
 		Repository: repository,
 	}
 }
 
-func (uc *CrudUseCase[T]) List(ctx context.Context, request model.ListRequest) (*[]T, int64, error) {
+func (uc *Crud[T]) List(ctx context.Context, request model.ListRequest) (*[]T, int64, error) {
 	return Wrapper[T](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.ListRequest]) (*[]T, int64, error) {
+		func(ctx *Context[model.ListRequest]) (*[]T, int64, error) {
 			collections, total, err := uc.Repository.FindAndCount(ctx.DB)
 			return &collections, total, err
 		},
 	)
 }
 
-func (uc *CrudUseCase[T]) GetById(ctx context.Context, request model.GetByIDRequest[int]) (*[]T, int64, error) {
+func (uc *Crud[T]) GetById(ctx context.Context, request model.GetByIDRequest[int]) (*[]T, int64, error) {
 	return Wrapper[T](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.GetByIDRequest[int]]) (*[]T, int64, error) {
+		func(ctx *Context[model.GetByIDRequest[int]]) (*[]T, int64, error) {
 			collections, total, err := uc.Repository.FindAndCountById(ctx.DB, ctx.Request.ID)
 			return &collections, total, err
 		},
 	)
 }
 
-func (uc *CrudUseCase[T]) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, int64, error) {
+func (uc *Crud[T]) GetFirstById(ctx context.Context, request model.GetByIDRequest[int]) (*T, int64, error) {
 	return Wrapper[T](
 		NewContext(ctx, uc.Log, uc.DB, request),
-		func(ctx *UseCaseContext[model.GetByIDRequest[int]]) (*T, int64, error) {
+		func(ctx *Context[model.GetByIDRequest[int]]) (*T, int64, error) {
 			id := ctx.Request.ID
 
 			collection, err := uc.Repository.FirstById(ctx.DB, id)

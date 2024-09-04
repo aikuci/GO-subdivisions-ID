@@ -16,15 +16,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type UseCaseContext[T any] struct {
+type Context[T any] struct {
 	Ctx     context.Context
 	Log     *zap.Logger
 	DB      *gorm.DB
 	Request T
 }
 
-func NewContext[T any](ctx context.Context, log *zap.Logger, db *gorm.DB, request T) *UseCaseContext[T] {
-	return &UseCaseContext[T]{
+func NewContext[T any](ctx context.Context, log *zap.Logger, db *gorm.DB, request T) *Context[T] {
+	return &Context[T]{
 		Ctx:     ctx,
 		Log:     log,
 		DB:      db,
@@ -32,9 +32,9 @@ func NewContext[T any](ctx context.Context, log *zap.Logger, db *gorm.DB, reques
 	}
 }
 
-type Callback[TEntity any, TRequest any, TResult any] func(ctx *UseCaseContext[TRequest]) (*TResult, int64, error)
+type Callback[TEntity any, TRequest any, TResult any] func(ctx *Context[TRequest]) (*TResult, int64, error)
 
-func Wrapper[TEntity any, TRequest any, TResult any](ctx *UseCaseContext[TRequest], callback Callback[TEntity, TRequest, TResult]) (*TResult, int64, error) {
+func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest], callback Callback[TEntity, TRequest, TResult]) (*TResult, int64, error) {
 	ctx.Log = ctx.Log.With(zap.String("requestid", requestid.FromContext(ctx.Ctx)))
 
 	var err error

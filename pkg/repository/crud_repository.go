@@ -16,10 +16,10 @@ type CruderRepository[T any] interface {
 	FindAndCountByIds(db *gorm.DB, ids []int) ([]T, int64, error)
 }
 
-type CrudRepository[T any, TId model.IdSingular, TIds model.IdPlural] struct {
+type Crud[T any, TId model.IdSingular, TIds model.IdPlural] struct {
 	Repository[T, TId, TIds]
 }
 
-func NewCrudRepository[T any, TId model.IdSingular, TIds model.IdPlural]() *CrudRepository[T, TId, TIds] {
-	return &CrudRepository[T, TId, TIds]{}
+func NewCrud[T any, TId model.IdSingular, TIds model.IdPlural]() *Crud[T, TId, TIds] {
+	return &Crud[T, TId, TIds]{}
 }

@@ -8,14 +8,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type CityRepository[TId appmodel.IdSingular, TIds appmodel.IdPlural] struct {
+type City[TId appmodel.IdSingular, TIds appmodel.IdPlural] struct {
 	apprepository.Repository[entity.City, TId, TIds]
 }
 
-func NewCityRepository[TId appmodel.IdSingular, TIds appmodel.IdPlural]() *CityRepository[TId, TIds] {
-	return &CityRepository[TId, TIds]{}
+func NewCity[TId appmodel.IdSingular, TIds appmodel.IdPlural]() *City[TId, TIds] {
+	return &City[TId, TIds]{}
 }
 
-func (r *CityRepository[TId, TIds]) FirstByIdAndIdProvince(db *gorm.DB, id TId, id_province TId) (entity.City, error) {
+func (r *City[TId, TIds]) FirstByIdAndIdProvince(db *gorm.DB, id TId, id_province TId) (entity.City, error) {
 	return r.FirstBy(db, map[string]interface{}{"id": id, "id_province": id_province})
 }

@@ -8,23 +8,23 @@ import (
 
 type CityMapper struct{}
 
-func NewCityMapper() *CityMapper {
+func NewCity() *CityMapper {
 	return &CityMapper{}
 }
 
 func (m *CityMapper) ModelToResponse(city *entity.City) *model.CityResponse {
 	var province *model.ProvinceResponse
 	if city.Province.ID > 0 {
-		provinceMapper := NewProvinceMapper()
+		provinceMapper := NewProvince()
 		province = provinceMapper.ModelToResponse(&city.Province)
 	}
 
-	districtsMapper := NewDistrictMapper()
+	districtsMapper := NewDistrict()
 	districts := make([]model.DistrictResponse, len(city.Districts))
 	for i, collection := range city.Districts {
 		districts[i] = *districtsMapper.ModelToResponse(&collection)
 	}
-	villagesMapper := NewVillageMapper()
+	villagesMapper := NewVillage()
 	villages := make([]model.VillageResponse, len(city.Villages))
 	for i, collection := range city.Villages {
 		villages[i] = *villagesMapper.ModelToResponse(&collection)
