@@ -15,7 +15,7 @@ import (
 func main() {
 	viperConfig := config.NewViper()
 	zapLog := config.NewZapLog(viperConfig)
-	db := config.NewDatabase(viperConfig, zapLog)
+	db := config.NewDatabase(viperConfig)
 	validate := config.NewValidator(viperConfig)
 
 	file, err := os.OpenFile("storage/log/fiber.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
