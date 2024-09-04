@@ -15,9 +15,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/gofiber/fiber/v2/utils"
 	"github.com/gofiber/storage/sqlite3/v2"
-	"github.com/gofiber/utils/v2"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type AppOptions struct {
@@ -27,7 +28,7 @@ type AppOptions struct {
 func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
 	var app = fiber.New(fiber.Config{
 		AppName:                  config.GetString("app.name"),
-		ErrorHandler:             NewErrorHandler(),
+		ErrorHandler:             NewErrorHandler(config),
 		Prefork:                  config.GetBool("web.prefork"),
 		EnableSplittingOnParsers: true,
 	})
@@ -55,7 +56,7 @@ func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
 	return app
 }
 
-func NewErrorHandler() fiber.ErrorHandler {
+func NewErrorHandler(config *viper.Viper) fiber.ErrorHandler {
 	return func(ctx *fiber.Ctx, err error) error {
 		code := fiber.StatusInternalServerError
 
@@ -65,6 +66,12 @@ func NewErrorHandler() fiber.ErrorHandler {
 		if e, ok := err.(*apperror.CustomErrorResponse); ok {
 			code = e.HTTPCode
 		}
+
+		zapLog := NewZapLog(config)
+		if rid, ok := ctx.Locals("requestid").(string); ok {
+			zapLog = zapLog.With(zap.String("requestid", rid))
+		}
+		zapLog.Warn(err.Error())
 
 		return ctx.Status(code).JSON(fiber.Map{
 			"errors": err.Error(),

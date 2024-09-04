@@ -37,8 +37,6 @@ type Callback[TEntity any, TRequest any, TResult any] func(ctx *Context[TRequest
 func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest], callback Callback[TEntity, TRequest, TResult]) (*TResult, int64, error) {
 	ctx.Log = ctx.Log.With(zap.String("requestid", requestid.FromContext(ctx.Ctx)))
 
-	return nil, 0, apperror.InternalServerError("Test Error")
-
 	var err error
 	ctx.DB, err = addRelations(ctx.Log, ctx.DB, generateRelations[TEntity](ctx.DB), ctx.Request)
 	if err != nil {
