@@ -8,6 +8,7 @@ import (
 	"time"
 
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
+	applog "github.com/aikuci/go-subdivisions-id/pkg/util/log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
@@ -18,7 +19,6 @@ import (
 	"github.com/gofiber/fiber/v2/utils"
 	"github.com/gofiber/storage/sqlite3/v2"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
 type AppOptions struct {
@@ -60,18 +60,14 @@ func NewErrorHandler(viper *viper.Viper) fiber.ErrorHandler {
 	return func(ctx *fiber.Ctx, err error) error {
 		code := fiber.StatusInternalServerError
 
-		if e, ok := err.(*fiber.Error); ok {
+		switch e := err.(type) {
+		case *fiber.Error:
 			code = e.Code
-		}
-		if e, ok := err.(*apperror.CustomErrorResponse); ok {
+		case *apperror.CustomErrorResponse:
 			code = e.HTTPCode
 		}
 
-		zapLog := NewZapLog(viper)
-		if rid, ok := ctx.Locals("requestid").(string); ok {
-			zapLog = zapLog.With(zap.String("requestid", rid))
-		}
-		zapLog.Warn("[fiber]: ", zap.Error(err))
+		applog.Write(NewZapLog(viper), ctx.UserContext(), "[fiber]: ", err)
 
 		return ctx.Status(code).JSON(fiber.Map{
 			"errors": err.Error(),

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/aikuci/go-subdivisions-id/pkg/model"
-	"github.com/aikuci/go-subdivisions-id/pkg/util/context/requestid"
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
+	applog "github.com/aikuci/go-subdivisions-id/pkg/util/log"
 	"github.com/aikuci/go-subdivisions-id/pkg/util/slice"
 
 	"github.com/gobeam/stringy"
@@ -35,8 +35,6 @@ func NewContext[T any](ctx context.Context, log *zap.Logger, db *gorm.DB, reques
 type Callback[TEntity any, TRequest any, TResult any] func(ctx *Context[TRequest]) (*TResult, int64, error)
 
 func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest], callback Callback[TEntity, TRequest, TResult]) (*TResult, int64, error) {
-	ctx.Log = ctx.Log.With(zap.String("requestid", requestid.FromContext(ctx.Ctx)))
-
 	var err error
 	ctx.DB, err = addRelations(ctx.DB, generateRelations[TEntity](ctx.DB), ctx.Request)
 	if err != nil {
@@ -54,13 +52,13 @@ func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest], cal
 		}
 
 		errorMessage := "failed to process"
-		ctx.Log.Warn(fmt.Sprintf("%v: ", errorMessage), zap.Error(err))
+		applog.Write(ctx.Log, ctx.Ctx, fmt.Sprintf("%v: ", errorMessage), err)
 		return nil, 0, apperror.InternalServerError(errorMessage)
 	}
 
 	if err := ctx.DB.Commit().Error; err != nil {
 		errorMessage := "failed to commit transaction"
-		ctx.Log.Warn(fmt.Sprintf("%v: ", errorMessage), zap.Error(err))
+		applog.Write(ctx.Log, ctx.Ctx, fmt.Sprintf("%v: ", errorMessage), err)
 		return nil, 0, apperror.InternalServerError(errorMessage)
 	}
 

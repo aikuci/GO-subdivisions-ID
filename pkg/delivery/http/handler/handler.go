@@ -36,6 +36,7 @@ type Callback[TRequest any, TEntity any, TModel any] func(ctx *Context[TRequest,
 
 func Wrapper[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEntity, TModel], callback Callback[TRequest, TEntity, TModel]) error {
 	ctx.Ctx = requestid.SetContext(ctx.FiberCtx.UserContext(), ctx.FiberCtx)
+	ctx.FiberCtx.SetUserContext(ctx.Ctx)
 
 	requestParsed := new(TRequest)
 	if err := parseRequest(ctx.FiberCtx, requestParsed); err != nil {
