@@ -2,14 +2,12 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"reflect"
 
 	"github.com/aikuci/go-subdivisions-id/pkg/model"
 	"github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/pkg/util/context/requestid"
-	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -57,14 +55,10 @@ func Wrapper[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEnti
 func buildResponse[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEntity, TModel]) error {
 	data := ctx.Data
 
-	collectionValue := reflect.ValueOf(data.collection).Elem()
-	if collectionValue.Kind() == reflect.Slice {
-		responses := make([]TModel, collectionValue.Len())
-		for i := 0; i < collectionValue.Len(); i++ {
-			item, ok := collectionValue.Index(i).Interface().(TEntity)
-			if !ok {
-				return apperror.InternalServerError(fmt.Sprintf("element at index %d in collection is not of type %T", i, (*TEntity)(nil)))
-			}
+	// Handle case where collection is a slice of TEntity
+	if collection, ok := data.collection.([]TEntity); ok {
+		responses := make([]TModel, len(collection))
+		for i, item := range collection {
 			responses[i] = *ctx.Mapper.ModelToResponse(&item)
 		}
 
@@ -78,15 +72,16 @@ func buildResponse[TRequest any, TEntity any, TModel any](ctx *Context[TRequest,
 		)
 	}
 
-	item, ok := data.collection.(*TEntity)
-	if !ok {
-		return apperror.InternalServerError(fmt.Sprintf("collection is not of type %T", (*TEntity)(nil)))
+	// Handle case where collection is a single TEntity
+	if item, ok := data.collection.(*TEntity); ok {
+		return ctx.FiberCtx.JSON(
+			model.WebResponse[TModel]{
+				Data: *ctx.Mapper.ModelToResponse(item),
+			},
+		)
 	}
-	return ctx.FiberCtx.JSON(
-		model.WebResponse[TModel]{
-			Data: *ctx.Mapper.ModelToResponse(item),
-		},
-	)
+
+	return fiber.ErrInternalServerError
 }
 
 func parseRequest(ctx *fiber.Ctx, request any) error {
