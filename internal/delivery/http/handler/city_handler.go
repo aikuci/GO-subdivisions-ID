@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
+	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
 	apphandler "github.com/aikuci/go-subdivisions-id/pkg/delivery/http/handler"
 	appmapper "github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
@@ -17,11 +18,11 @@ type City struct {
 	Mapper  appmapper.CruderMapper[entity.City, model.CityResponse]
 }
 
-func NewCity(log *zap.Logger, useCase *usecase.City, mapper appmapper.CruderMapper[entity.City, model.CityResponse]) *City {
+func NewCity(log *zap.Logger, useCase *usecase.City) *City {
 	return &City{
 		Log:     log,
 		UseCase: *useCase,
-		Mapper:  mapper,
+		Mapper:  mapper.NewCity(),
 	}
 }
 

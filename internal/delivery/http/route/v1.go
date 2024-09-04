@@ -9,8 +9,8 @@ func (c *RouteConfig) SetupV1Route() {
 		return ctx.SendString("PONG from V1")
 	})
 
-	v1.Get("/provinces", c.ProvinceHandler.List)
-	v1.Get("/provinces/:id<int>", c.ProvinceHandler.GetFirstById)
+	v1.Get("/provinces", c.ProvinceHandler.CrudHandler.List)
+	v1.Get("/provinces/:id<int>", c.ProvinceHandler.CrudHandler.GetFirstById)
 
 	v1.Get("/cities", c.CityHandler.List)
 	v1.Get("/cities/:id<int>", c.CityHandler.GetById)

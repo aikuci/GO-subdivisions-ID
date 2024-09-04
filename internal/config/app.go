@@ -4,10 +4,8 @@ import (
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/handler"
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/route"
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
-	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
-	apphandler "github.com/aikuci/go-subdivisions-id/pkg/delivery/http/handler"
 	apprepository "github.com/aikuci/go-subdivisions-id/pkg/repository"
 	appusecase "github.com/aikuci/go-subdivisions-id/pkg/usecase"
 
@@ -40,10 +38,10 @@ func Bootstrap(config *BootstrapConfig) {
 	villageUseCase := usecase.NewVillage(config.Log, config.DB, villageRepository)
 
 	// setup controllers
-	provinceHandler := apphandler.NewCrud(config.Log, provinceUseCase, mapper.NewProvince())
-	cityHandler := handler.NewCity(config.Log, cityUseCase, mapper.NewCity())
-	districtHandler := handler.NewDistrict(config.Log, districtUseCase, mapper.NewDistrict())
-	villageHandler := handler.NewVillage(config.Log, villageUseCase, mapper.NewVillage())
+	provinceHandler := handler.NewProvince(config.Log, provinceUseCase)
+	cityHandler := handler.NewCity(config.Log, cityUseCase)
+	districtHandler := handler.NewDistrict(config.Log, districtUseCase)
+	villageHandler := handler.NewVillage(config.Log, villageUseCase)
 
 	routeConfig := route.RouteConfig{
 		App:             config.App,

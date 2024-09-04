@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model"
+	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
 	apphandler "github.com/aikuci/go-subdivisions-id/pkg/delivery/http/handler"
 	appmapper "github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
@@ -17,11 +18,11 @@ type District struct {
 	Mapper  appmapper.CruderMapper[entity.District, model.DistrictResponse]
 }
 
-func NewDistrict(log *zap.Logger, useCase *usecase.District, mapper appmapper.CruderMapper[entity.District, model.DistrictResponse]) *District {
+func NewDistrict(log *zap.Logger, useCase *usecase.District) *District {
 	return &District{
 		Log:     log,
 		UseCase: *useCase,
-		Mapper:  mapper,
+		Mapper:  mapper.NewDistrict(),
 	}
 }
 
