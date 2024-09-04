@@ -27,8 +27,10 @@ const (
 // Returns:
 // - A new context with the request ID.
 func SetContext(ctx context.Context, c *fiber.Ctx) context.Context {
-	ctxResult := context.WithValue(ctx, requestIDKey, c.Locals("requestid").(string))
-	return ctxResult
+	if rid, ok := c.Locals("requestid").(string); ok {
+		return context.WithValue(ctx, requestIDKey, rid)
+	}
+	return ctx
 }
 
 // FromContext retrieves the request ID from the given context.

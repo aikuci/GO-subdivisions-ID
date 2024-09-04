@@ -6,9 +6,9 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/aikuci/go-subdivisions-id/pkg/delivery/http/middleware/requestid"
 	"github.com/aikuci/go-subdivisions-id/pkg/model"
 	"github.com/aikuci/go-subdivisions-id/pkg/model/mapper"
+	"github.com/aikuci/go-subdivisions-id/pkg/util/context/requestid"
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"github.com/gofiber/fiber/v2"
