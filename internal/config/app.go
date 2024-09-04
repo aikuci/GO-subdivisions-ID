@@ -25,23 +25,23 @@ type BootstrapConfig struct {
 }
 
 func Bootstrap(config *BootstrapConfig) {
-	// setup repositories
+	// Repositories
 	provinceRepository := apprepository.NewCrud[entity.Province, int, []int]()
 	cityRepository := repository.NewCity[int, []int]()
 	districtRepository := repository.NewDistrict[int, []int]()
 	villageRepository := repository.NewVillage[int, []int]()
 
-	// setup use cases
+	// UseCases
 	provinceUseCase := appusecase.NewCrud(config.Log, config.DB, provinceRepository)
 	cityUseCase := usecase.NewCity(config.Log, config.DB, cityRepository)
 	districtUseCase := usecase.NewDistrict(config.Log, config.DB, districtRepository)
 	villageUseCase := usecase.NewVillage(config.Log, config.DB, villageRepository)
 
-	// setup controllers
-	provinceHandler := handler.NewProvince(config.Log, provinceUseCase)
-	cityHandler := handler.NewCity(config.Log, cityUseCase)
-	districtHandler := handler.NewDistrict(config.Log, districtUseCase)
-	villageHandler := handler.NewVillage(config.Log, villageUseCase)
+	// Handlers
+	provinceHandler := handler.NewProvince(provinceUseCase)
+	cityHandler := handler.NewCity(cityUseCase)
+	districtHandler := handler.NewDistrict(districtUseCase)
+	villageHandler := handler.NewVillage(villageUseCase)
 
 	routeConfig := route.RouteConfig{
 		App:             config.App,

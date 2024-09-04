@@ -12,7 +12,6 @@ import (
 	apperror "github.com/aikuci/go-subdivisions-id/pkg/util/error"
 
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 )
 
 type ContextData struct {
@@ -21,7 +20,6 @@ type ContextData struct {
 }
 
 type Context[TRequest any, TEntity any, TModel any] struct {
-	Log      *zap.Logger
 	Ctx      context.Context
 	FiberCtx *fiber.Ctx
 	Request  TRequest
@@ -29,9 +27,8 @@ type Context[TRequest any, TEntity any, TModel any] struct {
 	Data     ContextData
 }
 
-func NewContext[TRequest any, TEntity any, TModel any](log *zap.Logger, fiberCtx *fiber.Ctx, mapper mapper.CruderMapper[TEntity, TModel]) *Context[TRequest, TEntity, TModel] {
+func NewContext[TRequest any, TEntity any, TModel any](fiberCtx *fiber.Ctx, mapper mapper.CruderMapper[TEntity, TModel]) *Context[TRequest, TEntity, TModel] {
 	return &Context[TRequest, TEntity, TModel]{
-		Log:      log,
 		FiberCtx: fiberCtx,
 		Mapper:   mapper,
 	}
@@ -41,7 +38,6 @@ type Callback[TRequest any, TEntity any, TModel any] func(ctx *Context[TRequest,
 
 func Wrapper[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEntity, TModel], callback Callback[TRequest, TEntity, TModel]) error {
 	ctx.Ctx = requestid.SetContext(ctx.FiberCtx.UserContext(), ctx.FiberCtx)
-	ctx.Log = ctx.Log.With(zap.String("requestid", requestid.FromContext(ctx.Ctx)))
 
 	requestParsed := new(TRequest)
 	if err := parseRequest(ctx.FiberCtx, requestParsed); err != nil {
@@ -51,7 +47,6 @@ func Wrapper[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEnti
 
 	collection, total, err := callback(ctx)
 	if err != nil {
-		ctx.Log.Warn(err.Error())
 		return err
 	}
 
@@ -68,9 +63,7 @@ func buildResponse[TRequest any, TEntity any, TModel any](ctx *Context[TRequest,
 		for i := 0; i < collectionValue.Len(); i++ {
 			item, ok := collectionValue.Index(i).Interface().(TEntity)
 			if !ok {
-				errorMessage := fmt.Sprintf("element at index %d in collection is not of type %T", i, (*TEntity)(nil))
-				ctx.Log.Warn(errorMessage)
-				return apperror.InternalServerError(errorMessage)
+				return apperror.InternalServerError(fmt.Sprintf("element at index %d in collection is not of type %T", i, (*TEntity)(nil)))
 			}
 			responses[i] = *ctx.Mapper.ModelToResponse(&item)
 		}
@@ -87,9 +80,7 @@ func buildResponse[TRequest any, TEntity any, TModel any](ctx *Context[TRequest,
 
 	item, ok := data.collection.(*TEntity)
 	if !ok {
-		errorMessage := fmt.Sprintf("collection is not of type %T", (*TEntity)(nil))
-		ctx.Log.Warn(errorMessage)
-		return apperror.InternalServerError(errorMessage)
+		return apperror.InternalServerError(fmt.Sprintf("collection is not of type %T", (*TEntity)(nil)))
 	}
 	return ctx.FiberCtx.JSON(
 		model.WebResponse[TModel]{
