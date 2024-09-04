@@ -15,10 +15,10 @@ import (
 type RouteConfig struct {
 	App             *fiber.App
 	DB              *gorm.DB
-	ProvinceHandler *apphandler.CrudHandler[entity.Province, model.ProvinceResponse]
-	CityHandler     *handler.CityHandler
-	DistrictHandler *handler.DistrictHandler
-	VillageHandler  *handler.VillageHandler
+	ProvinceHandler *apphandler.Crud[entity.Province, model.ProvinceResponse]
+	CityHandler     *handler.City
+	DistrictHandler *handler.District
+	VillageHandler  *handler.Village
 }
 
 func (c *RouteConfig) Setup() {

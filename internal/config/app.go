@@ -28,22 +28,22 @@ type BootstrapConfig struct {
 
 func Bootstrap(config *BootstrapConfig) {
 	// setup repositories
-	provinceRepository := apprepository.NewCrudRepository[entity.Province, int, []int]()
-	cityRepository := repository.NewCityRepository[int, []int]()
-	districtRepository := repository.NewDistrictRepository[int, []int]()
-	villageRepository := repository.NewVillageRepository[int, []int]()
+	provinceRepository := apprepository.NewCrud[entity.Province, int, []int]()
+	cityRepository := repository.NewCity[int, []int]()
+	districtRepository := repository.NewDistrict[int, []int]()
+	villageRepository := repository.NewVillage[int, []int]()
 
 	// setup use cases
-	provinceUseCase := appusecase.NewCrudUseCase(config.Log, config.DB, provinceRepository)
-	cityUseCase := usecase.NewCityUseCase(config.Log, config.DB, cityRepository)
-	districtUseCase := usecase.NewDistrictUseCase(config.Log, config.DB, districtRepository)
-	villageUseCase := usecase.NewVillageUseCase(config.Log, config.DB, villageRepository)
+	provinceUseCase := appusecase.NewCrud(config.Log, config.DB, provinceRepository)
+	cityUseCase := usecase.NewCity(config.Log, config.DB, cityRepository)
+	districtUseCase := usecase.NewDistrict(config.Log, config.DB, districtRepository)
+	villageUseCase := usecase.NewVillage(config.Log, config.DB, villageRepository)
 
 	// setup controllers
-	provinceHandler := apphandler.NewCrudHandler(config.Log, provinceUseCase, mapper.NewProvinceMapper())
-	cityHandler := handler.NewCityHandler(config.Log, cityUseCase, mapper.NewCityMapper())
-	districtHandler := handler.NewDistrictHandler(config.Log, districtUseCase, mapper.NewDistrictMapper())
-	villageHandler := handler.NewVillageHandler(config.Log, villageUseCase, mapper.NewVillageMapper())
+	provinceHandler := apphandler.NewCrud(config.Log, provinceUseCase, mapper.NewProvince())
+	cityHandler := handler.NewCity(config.Log, cityUseCase, mapper.NewCity())
+	districtHandler := handler.NewDistrict(config.Log, districtUseCase, mapper.NewDistrict())
+	villageHandler := handler.NewVillage(config.Log, villageUseCase, mapper.NewVillage())
 
 	routeConfig := route.RouteConfig{
 		App:             config.App,
