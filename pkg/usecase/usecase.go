@@ -38,7 +38,7 @@ func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest], cal
 	ctx.Log = ctx.Log.With(zap.String("requestid", requestid.FromContext(ctx.Ctx)))
 
 	var err error
-	ctx.DB, err = addRelations(ctx.Log, ctx.DB, generateRelations[TEntity](ctx.DB), ctx.Request)
+	ctx.DB, err = addRelations(ctx.DB, generateRelations[TEntity](ctx.DB), ctx.Request)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -49,12 +49,18 @@ func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest], cal
 
 	collections, total, err := callback(ctx)
 	if err != nil {
-		return nil, 0, err
+		if apperr, ok := err.(*apperror.CustomErrorResponse); ok {
+			return nil, 0, apperr
+		}
+
+		errorMessage := "failed to process"
+		ctx.Log.Warn(fmt.Sprintf("%v: ", errorMessage), zap.Error(err))
+		return nil, 0, apperror.InternalServerError(errorMessage)
 	}
 
 	if err := ctx.DB.Commit().Error; err != nil {
 		errorMessage := "failed to commit transaction"
-		ctx.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
+		ctx.Log.Warn(fmt.Sprintf("%v: ", errorMessage), zap.Error(err))
 		return nil, 0, apperror.InternalServerError(errorMessage)
 	}
 
@@ -98,7 +104,7 @@ func collectRelations(db *gorm.DB, collection any) *relations {
 	return &relations{pascal: relations_pascal, snake: relations_snake}
 }
 
-func addRelations(log *zap.Logger, db *gorm.DB, relations *relations, request any) (*gorm.DB, error) {
+func addRelations(db *gorm.DB, relations *relations, request any) (*gorm.DB, error) {
 	r := reflect.ValueOf(request)
 	if r.FieldByName("Include").IsValid() {
 		if include, ok := r.FieldByName("Include").Interface().([]string); ok {
@@ -110,9 +116,7 @@ func addRelations(log *zap.Logger, db *gorm.DB, relations *relations, request an
 				} else {
 					idx := slice.ArrayIndexOf(relations.snake, relation)
 					if idx == -1 {
-						errorMessage := fmt.Sprintf("Invalid relation '%v' provided. Available relation is '(%v)'.", relation, strings.Join(relations.snake, ", "))
-						log.Warn(errorMessage)
-						return nil, apperror.BadRequest(errorMessage)
+						return nil, apperror.BadRequest(fmt.Sprintf("Invalid relation: %v provided. Available relations are [%v].", relation, strings.Join(relations.snake, ", ")))
 					}
 					db = db.Preload(relations.pascal[idx])
 				}

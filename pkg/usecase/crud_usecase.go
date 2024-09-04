@@ -58,20 +58,13 @@ func (uc *Crud[T]) GetFirstById(ctx context.Context, request model.GetByIDReques
 		NewContext(ctx, uc.Log, uc.DB, request),
 		func(ctx *Context[model.GetByIDRequest[int]]) (*T, int64, error) {
 			id := ctx.Request.ID
-
 			collection, err := uc.Repository.FirstById(ctx.DB, id)
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					errorMessage := fmt.Sprintf("failed to get data with ID: %d", id)
-					ctx.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-					return nil, 0, apperror.RecordNotFound(errorMessage)
-				}
 
-				ctx.Log.Warn(err.Error())
-				return nil, 0, err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, 0, apperror.RecordNotFound(fmt.Sprintf("failed to get data with ID: %d", id))
 			}
 
-			return &collection, 1, nil
+			return &collection, 1, err
 		},
 	)
 }

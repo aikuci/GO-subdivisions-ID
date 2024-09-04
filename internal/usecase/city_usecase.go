@@ -73,18 +73,11 @@ func (uc *City) GetFirstById(ctx context.Context, request model.GetCityByIDReque
 			idProvince := ctx.Request.IDProvince
 			collection, err := uc.Repository.FirstByIdAndIdProvince(ctx.DB, id, idProvince)
 
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					errorMessage := fmt.Sprintf("failed to get cities data with ID: %d and ID Province: %d", id, idProvince)
-					ctx.Log.Warn(err.Error(), zap.String("errorMessage", errorMessage))
-					return nil, 0, apperror.RecordNotFound(errorMessage)
-				}
-
-				ctx.Log.Warn(err.Error())
-				return nil, 0, err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, 0, apperror.RecordNotFound(fmt.Sprintf("failed to get cities data with ID: %d and ID Province: %d", id, idProvince))
 			}
 
-			return &collection, 1, nil
+			return &collection, 1, err
 		},
 	)
 }
