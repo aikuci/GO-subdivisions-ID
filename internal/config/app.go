@@ -1,13 +1,13 @@
 package config
 
 import (
-	"github.com/aikuci/go-subdivisions-id/internal/delivery/http"
+	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/handler"
 	"github.com/aikuci/go-subdivisions-id/internal/delivery/http/route"
 	"github.com/aikuci/go-subdivisions-id/internal/entity"
 	"github.com/aikuci/go-subdivisions-id/internal/model/mapper"
 	"github.com/aikuci/go-subdivisions-id/internal/repository"
 	"github.com/aikuci/go-subdivisions-id/internal/usecase"
-	apphttp "github.com/aikuci/go-subdivisions-id/pkg/delivery/http"
+	apphandler "github.com/aikuci/go-subdivisions-id/pkg/delivery/http/handler"
 	apprepository "github.com/aikuci/go-subdivisions-id/pkg/repository"
 	appusecase "github.com/aikuci/go-subdivisions-id/pkg/usecase"
 
@@ -40,18 +40,18 @@ func Bootstrap(config *BootstrapConfig) {
 	villageUseCase := usecase.NewVillageUseCase(config.Log, config.DB, villageRepository)
 
 	// setup controllers
-	provinceController := apphttp.NewCrudController(config.Log, provinceUseCase, mapper.NewProvinceMapper())
-	cityController := http.NewCityController(config.Log, cityUseCase, mapper.NewCityMapper())
-	districtController := http.NewDistrictController(config.Log, districtUseCase, mapper.NewDistrictMapper())
-	villageController := http.NewVillageController(config.Log, villageUseCase, mapper.NewVillageMapper())
+	provinceHandler := apphandler.NewCrudHandler(config.Log, provinceUseCase, mapper.NewProvinceMapper())
+	cityHandler := handler.NewCityHandler(config.Log, cityUseCase, mapper.NewCityMapper())
+	districtHandler := handler.NewDistrictHandler(config.Log, districtUseCase, mapper.NewDistrictMapper())
+	villageHandler := handler.NewVillageHandler(config.Log, villageUseCase, mapper.NewVillageMapper())
 
 	routeConfig := route.RouteConfig{
-		App:                config.App,
-		DB:                 config.DB,
-		ProvinceController: provinceController,
-		CityController:     cityController,
-		DistrictController: districtController,
-		VillageController:  villageController,
+		App:             config.App,
+		DB:              config.DB,
+		ProvinceHandler: provinceHandler,
+		CityHandler:     cityHandler,
+		DistrictHandler: districtHandler,
+		VillageHandler:  villageHandler,
 	}
 	routeConfig.Setup()
 }
