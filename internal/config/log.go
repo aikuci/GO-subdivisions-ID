@@ -9,9 +9,9 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func NewZapLog(config *viper.Viper) *zap.Logger {
+func NewZapLog(viper *viper.Viper) *zap.Logger {
 	logger, err := func() (*zap.Logger, error) {
-		if config.GetString("app.mode") == "production" {
+		if viper.GetString("app.mode") == "production" {
 			return NewProductionLogger()
 		}
 		return NewDevelopmentLogger()

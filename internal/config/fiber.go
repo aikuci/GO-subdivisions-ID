@@ -25,11 +25,11 @@ type AppOptions struct {
 	LogWriter io.Writer
 }
 
-func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
+func NewFiber(viper *viper.Viper, options *AppOptions) *fiber.App {
 	var app = fiber.New(fiber.Config{
-		AppName:                  config.GetString("app.name"),
-		ErrorHandler:             NewErrorHandler(config),
-		Prefork:                  config.GetBool("web.prefork"),
+		AppName:                  viper.GetString("app.name"),
+		ErrorHandler:             NewErrorHandler(viper),
+		Prefork:                  viper.GetBool("web.prefork"),
 		EnableSplittingOnParsers: true,
 	})
 
@@ -43,7 +43,7 @@ func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
 			return utils.CopyString(c.Path()) + utils.CopyString(string(c.Request().URI().QueryString()))
 		},
 	}))
-	app.Use(newLimiterConfig(config))
+	app.Use(newLimiterConfig(viper))
 	app.Use(recover.New(recover.Config{
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
 			fmt.Println(c.Request().URI())
@@ -56,7 +56,7 @@ func NewFiber(config *viper.Viper, options *AppOptions) *fiber.App {
 	return app
 }
 
-func NewErrorHandler(config *viper.Viper) fiber.ErrorHandler {
+func NewErrorHandler(viper *viper.Viper) fiber.ErrorHandler {
 	return func(ctx *fiber.Ctx, err error) error {
 		code := fiber.StatusInternalServerError
 
@@ -67,11 +67,11 @@ func NewErrorHandler(config *viper.Viper) fiber.ErrorHandler {
 			code = e.HTTPCode
 		}
 
-		zapLog := NewZapLog(config)
+		zapLog := NewZapLog(viper)
 		if rid, ok := ctx.Locals("requestid").(string); ok {
 			zapLog = zapLog.With(zap.String("requestid", rid))
 		}
-		zapLog.Warn(err.Error())
+		zapLog.Warn("[fiber]: ", zap.Error(err))
 
 		return ctx.Status(code).JSON(fiber.Map{
 			"errors": err.Error(),
@@ -79,7 +79,7 @@ func NewErrorHandler(config *viper.Viper) fiber.ErrorHandler {
 	}
 }
 
-func newLimiterConfig(config *viper.Viper) fiber.Handler {
+func newLimiterConfig(viper *viper.Viper) fiber.Handler {
 	storage := sqlite3.New(sqlite3.Config{
 		Database:        "./storage/log/fiber-limiter.sqlite3",
 		Table:           "fiber_storage",
@@ -91,7 +91,7 @@ func newLimiterConfig(config *viper.Viper) fiber.Handler {
 	})
 
 	limiterConfig := func() limiter.Config {
-		if config.GetString("app.mode") == "production" {
+		if viper.GetString("app.mode") == "production" {
 			return newProductionLimiterConfig(storage)
 		}
 
