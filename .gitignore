@@ -21,6 +21,7 @@
 *.db
 *.sqlite
 *.sqlite3
+!*test.sqlite3
 
 # Env Files
 .env

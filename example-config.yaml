@@ -7,8 +7,8 @@ web:
 log:
   level: 6
 database:
-  dialect: pg
-  # dsn: postgresql://postgres:postgres@localhost:5432
+  dialect: sqlite
+  dsn: db/test.sqlite3
   pool:
     idle: 6
     max: 100
