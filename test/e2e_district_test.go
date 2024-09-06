@@ -4,7 +4,7 @@ import "testing"
 
 func TestGetDistrict(t *testing.T) {
 	ClearAll()
-	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 1, totalDistrict: 1})
+	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 1, TotalCityRelations: TotalCityRelations{totalDistrict: 1}})
 
 	tests := []TestStruct{
 		{
@@ -32,7 +32,7 @@ func TestGetDistrict(t *testing.T) {
 
 func TestGetDistricts(t *testing.T) {
 	ClearAll()
-	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 1, totalDistrict: 20})
+	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 1, TotalCityRelations: TotalCityRelations{totalDistrict: 20}})
 
 	tests := []TestStruct{
 		{
@@ -48,7 +48,13 @@ func TestGetDistricts(t *testing.T) {
 
 func TestGetDistrictsWithItsRelations(t *testing.T) {
 	ClearAll()
-	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 1, totalDistrict: 30})
+	CreateProvincesAndItsRelations(1,
+		TotalProvinceRelations{totalCity: 1,
+			TotalCityRelations: TotalCityRelations{totalDistrict: 30,
+				TotalDistrictRelations: TotalDistrictRelations{totalVillage: 1},
+			},
+		},
+	)
 
 	tests := []TestStruct{
 		{
@@ -64,6 +70,12 @@ func TestGetDistrictsWithItsRelations(t *testing.T) {
 			expectedCode:  StatusOK,
 		},
 		{
+			name:          "Successful request: Get districts include its villages",
+			route:         "/v1/provinces/1/cities/1/districts?include=villages",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
 			name:          "Bad request: Invalid 'include' query parameter",
 			route:         "/v1/provinces/1/cities/1/districts?include=relation",
 			expectedError: false,
@@ -71,14 +83,14 @@ func TestGetDistrictsWithItsRelations(t *testing.T) {
 		},
 
 		{
-			name:          "Successful request: Get districts include its province and city",
-			route:         "/v1/provinces/1/cities/1/districts?include=province,city",
+			name:          "Successful request: Get districts include its province, city and villages",
+			route:         "/v1/provinces/1/cities/1/districts?include=province,city,villages",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
 		{
-			name:          "Successful request: Get district by valid ID include its province and city",
-			route:         "/v1/provinces/1/cities/1/districts/1?include=province,city",
+			name:          "Successful request: Get district by valid ID include its province, city and villages",
+			route:         "/v1/provinces/1/cities/1/districts/1?include=province,city,villages",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
@@ -92,6 +104,12 @@ func TestGetDistrictsWithItsRelations(t *testing.T) {
 		{
 			name:          "Successful request: Get district by valid ID include its city",
 			route:         "/v1/provinces/1/cities/1/districts/1?include=city",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get district by valid ID include its villages",
+			route:         "/v1/provinces/1/cities/1/districts/1?include=villages",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},

@@ -48,7 +48,13 @@ func TestGetCities(t *testing.T) {
 
 func TestGetCitiesWithItsRelations(t *testing.T) {
 	ClearAll()
-	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 30, totalDistrict: 1})
+	CreateProvincesAndItsRelations(1,
+		TotalProvinceRelations{totalCity: 30,
+			TotalCityRelations: TotalCityRelations{totalDistrict: 1,
+				TotalDistrictRelations: TotalDistrictRelations{totalVillage: 1},
+			},
+		},
+	)
 
 	tests := []TestStruct{
 		{
@@ -64,6 +70,12 @@ func TestGetCitiesWithItsRelations(t *testing.T) {
 			expectedCode:  StatusOK,
 		},
 		{
+			name:          "Successful request: Get cities include its villages",
+			route:         "/v1/provinces/1/cities?include=villages",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
 			name:          "Bad request: Invalid 'include' query parameter",
 			route:         "/v1/provinces/1/cities?include=relation",
 			expectedError: false,
@@ -71,14 +83,26 @@ func TestGetCitiesWithItsRelations(t *testing.T) {
 		},
 
 		{
-			name:          "Successful request: Get cities include its province and districts",
-			route:         "/v1/provinces/1/cities?include=province,districts",
+			name:          "Successful request: Get cities include its province, districts and villages",
+			route:         "/v1/provinces/1/cities?include=province,districts,villages",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
 		{
-			name:          "Successful request: Get city by valid ID include its province and districts",
-			route:         "/v1/provinces/1/cities/1?include=province,districts",
+			name:          "Successful request: Get cities include its relations in nested format",
+			route:         "/v1/provinces/1/cities?include=province,districts.villages",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get city by valid ID include its province, districts and villages",
+			route:         "/v1/provinces/1/cities/1?include=province,districts,villages",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get cities by valid ID include its relations in nested format",
+			route:         "/v1/provinces/1/cities/1?include=province,districts.villages",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
