@@ -14,6 +14,7 @@ import (
 func ClearAll() {
 	ClearProvinces()
 	ClearCities()
+	ClearDistricts()
 }
 
 func ClearProvinces() {
@@ -26,7 +27,14 @@ func ClearProvinces() {
 func ClearCities() {
 	err := db.Where("id is not null").Delete(&entity.City{}).Error
 	if err != nil {
-		log.Fatal("Failed clear province data: %+v", zap.Error(err))
+		log.Fatal("Failed clear city data: %+v", zap.Error(err))
+	}
+}
+
+func ClearDistricts() {
+	err := db.Where("id is not null").Delete(&entity.District{}).Error
+	if err != nil {
+		log.Fatal("Failed clear district data: %+v", zap.Error(err))
 	}
 }
 
@@ -99,4 +107,11 @@ func GetFirstCity(t *testing.T) *entity.City {
 	err := db.First(city).Error
 	assert.Nil(t, err)
 	return city
+}
+
+func GetFirstDistrict(t *testing.T) *entity.District {
+	district := new(entity.District)
+	err := db.First(district).Error
+	assert.Nil(t, err)
+	return district
 }
