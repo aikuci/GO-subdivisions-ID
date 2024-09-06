@@ -1,5 +1,8 @@
 package e2e
 
+// Note: Importing test code from another package is not allowed.
+// Ref: https://stackoverflow.com/a/56412373
+
 import (
 	"testing"
 
