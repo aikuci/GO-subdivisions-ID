@@ -35,10 +35,16 @@ func NewContext[T any](ctx context.Context, log *zap.Logger, db *gorm.DB, reques
 type Callback[TEntity any, TRequest any, TResult any] func(ctx *Context[TRequest]) (*TResult, int64, error)
 
 func Wrapper[TEntity any, TRequest any, TResult any](ctx *Context[TRequest], callback Callback[TEntity, TRequest, TResult]) (*TResult, int64, error) {
-	var err error
-	ctx.DB, err = addRelations(ctx.DB, generateRelations[TEntity](ctx.DB), ctx.Request)
-	if err != nil {
-		return nil, 0, err
+	var apperr *apperror.CustomErrorResponse
+	ctx.DB, apperr = addRelations(ctx.DB, generateRelations[TEntity](ctx.DB), ctx.Request)
+	if apperr != nil {
+		if apperr.HTTPCode != 500 {
+			return nil, 0, apperr
+		}
+
+		errorMessage := "failed to process its relation"
+		applog.Write(ctx.Log, ctx.Ctx, fmt.Sprintf("%v: ", errorMessage), apperr)
+		return nil, 0, apperror.InternalServerError(errorMessage)
 	}
 	ctx.DB = addPagination(ctx.DB, ctx.Request)
 
@@ -102,37 +108,52 @@ func collectRelations(db *gorm.DB, collection any) *relations {
 	return &relations{pascal: relations_pascal, snake: relations_snake}
 }
 
-func addRelations(db *gorm.DB, relations *relations, request any) (*gorm.DB, error) {
+func addRelations(db *gorm.DB, relations *relations, request any) (*gorm.DB, *apperror.CustomErrorResponse) {
 	r := reflect.ValueOf(request)
-	if r.FieldByName("Include").IsValid() {
-		if include, ok := r.FieldByName("Include").Interface().([]string); ok {
-			for _, relation := range include {
-				if strings.Contains(relation, ".") {
-					// TODO: Check if the relation is valid
-					str := stringy.New(relation)
-					db = db.Preload(str.PascalCase().Delimited(".").Get())
-				} else {
-					idx := slice.ArrayIndexOf(relations.snake, relation)
-					if idx == -1 {
-						return nil, apperror.BadRequest(fmt.Sprintf("Invalid relation: %v provided. Available relations are [%v].", relation, strings.Join(relations.snake, ", ")))
-					}
-					db = db.Preload(relations.pascal[idx])
-				}
+
+	if !r.FieldByName("Include").IsValid() {
+		return db, nil
+	}
+
+	include, ok := r.FieldByName("Include").Interface().([]string)
+	if !ok {
+		return nil, apperror.InternalServerError("Invalid type for 'Include' field. Expected []string.")
+	}
+
+	for _, relation := range include {
+		if strings.Contains(relation, ".") {
+			// TODO: Implement relation validation logic, Validate if relPath is a valid relation
+			str := stringy.New(relation)
+			db = db.Preload(str.PascalCase().Delimited(".").Get())
+		} else {
+			idx := slice.ArrayIndexOf(relations.snake, relation)
+			if idx == -1 {
+				return nil, apperror.BadRequest(fmt.Sprintf("Invalid relation: %v provided. Available relations are [%v].", relation, strings.Join(relations.snake, ", ")))
 			}
+			db = db.Preload(relations.pascal[idx])
 		}
 	}
+
 	return db, nil
 }
 
 func addPagination(db *gorm.DB, request any) *gorm.DB {
 	r := reflect.ValueOf(request)
-	for i := 0; i < r.NumField(); i++ {
-		if pagination, ok := r.Field(i).Interface().(model.PageRequest); ok {
-			if pagination.Page > 0 && pagination.Size > 0 {
-				offset := (pagination.Page - 1) * pagination.Size
-				return db.Offset(offset).Limit(pagination.Size)
-			}
-		}
+
+	pageRequestField := r.FieldByName("PageRequest")
+	if !pageRequestField.IsValid() || pageRequestField.Kind() != reflect.Struct {
+		return db
 	}
+
+	pagination, ok := pageRequestField.Interface().(model.PageRequest)
+	if !ok {
+		return db
+	}
+
+	if pagination.Page > 0 && pagination.Size > 0 {
+		offset := (pagination.Page - 1) * pagination.Size
+		return db.Offset(offset).Limit(pagination.Size)
+	}
+
 	return db
 }
