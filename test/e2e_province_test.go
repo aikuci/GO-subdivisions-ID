@@ -77,8 +77,20 @@ func TestGetProvincesWithItsRelations(t *testing.T) {
 			expectedCode:  StatusOK,
 		},
 		{
+			name:          "Successful request: Get provinces include its relations in nested format",
+			route:         "/v1/provinces?include=cities.districts",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
 			name:          "Successful request: Get province by valid ID include its cities and districts",
 			route:         "/v1/provinces/1?include=cities,districts",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get province by valid ID include its relations in nested format",
+			route:         "/v1/provinces/1?include=cities.districts",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
