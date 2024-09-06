@@ -14,14 +14,8 @@ func TestGetProvince(t *testing.T) {
 			expectedCode:  StatusOK,
 		},
 		{
-			name:          "Bad request: Invalid 'include' query parameter",
-			route:         "/v1/provinces/1?include=relation", // Assuming 'relation' is an invalid include parameter
-			expectedError: false,
-			expectedCode:  StatusBadRequest,
-		},
-		{
 			name:          "Not found: Get province by unregistered ID",
-			route:         "/v1/provinces/0", // Assuming there is no ID registered with 0 value
+			route:         "/v1/provinces/0",
 			expectedError: false,
 			expectedCode:  StatusNotFound,
 		},
@@ -47,9 +41,38 @@ func TestGetProvinces(t *testing.T) {
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
+	}
+
+	ExecTestRequest(t, tests)
+}
+
+func TestGetProvincesWithItsCities(t *testing.T) {
+	ClearAll()
+	CreateProvincesAndCities(30, 1)
+
+	tests := []TestStruct{
+		{
+			name:          "Successful request: Get provinces include its cities",
+			route:         "/v1/provinces?include=cities",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
 		{
 			name:          "Bad request: Invalid 'include' query parameter",
-			route:         "/v1/provinces?include=relation", // Assuming 'relation' is an invalid include parameter
+			route:         "/v1/provinces?include=relation",
+			expectedError: false,
+			expectedCode:  StatusBadRequest,
+		},
+
+		{
+			name:          "Successful request: Get province by valid ID include its cities",
+			route:         "/v1/provinces/1?include=cities",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Bad request: Invalid 'include' query parameter",
+			route:         "/v1/provinces/1?include=relation",
 			expectedError: false,
 			expectedCode:  StatusBadRequest,
 		},

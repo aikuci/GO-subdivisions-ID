@@ -25,16 +25,51 @@ func ClearProvinces() {
 func CreateProvinces(total int) {
 	for i := 0; i < total; i++ {
 		id := i + 1
-		contact := &entity.Province{
+		province := &entity.Province{
 			Base:        entity.Base{ID: id},
 			Code:        strconv.Itoa(id),
 			Name:        "Province " + strconv.Itoa(id),
 			PostalCodes: pq.Int64Array{int64(id * 1000)},
 		}
-		err := db.Create(contact).Error
+		err := db.Create(province).Error
 		if err != nil {
-			log.Fatal("Failed create contact data : %+v", zap.Error(err))
+			log.Fatal("Failed create province data : %+v", zap.Error(err))
 		}
+	}
+}
+
+func CreateCities(total int, provinceId int) {
+	for i := 0; i < total; i++ {
+		id := provinceId*total + i + 1
+		city := &entity.City{
+			Base:        entity.Base{ID: id},
+			ProvinceID:  provinceId,
+			Code:        strconv.Itoa(id),
+			Name:        "City " + strconv.Itoa(id),
+			PostalCodes: pq.Int64Array{int64(id * 1000)},
+		}
+		err := db.Create(city).Error
+		if err != nil {
+			log.Fatal("Failed create city data : %+v", zap.Error(err))
+		}
+	}
+}
+
+func CreateProvincesAndCities(totalProvince int, totalCity int) {
+	for i := 0; i < totalProvince; i++ {
+		id := i + 1
+		province := &entity.Province{
+			Base:        entity.Base{ID: id},
+			Code:        strconv.Itoa(id),
+			Name:        "Province " + strconv.Itoa(id),
+			PostalCodes: pq.Int64Array{int64(id * 1000)},
+		}
+		err := db.Create(province).Error
+		if err != nil {
+			log.Fatal("Failed create province data : %+v", zap.Error(err))
+		}
+
+		CreateCities(totalCity, id)
 	}
 }
 
