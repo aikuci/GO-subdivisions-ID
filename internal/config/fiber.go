@@ -76,17 +76,21 @@ func NewErrorHandler(viper *viper.Viper) fiber.ErrorHandler {
 }
 
 func newLimiterConfig(viper *viper.Viper) fiber.Handler {
-	storage := sqlite3.New(sqlite3.Config{
-		Database:        "./storage/log/fiber-limiter.sqlite3",
-		Table:           "fiber_storage",
-		Reset:           false,
-		GCInterval:      10 * time.Second,
-		MaxOpenConns:    100,
-		MaxIdleConns:    100,
-		ConnMaxLifetime: 1 * time.Second,
-	})
-
 	limiterConfig := func() limiter.Config {
+		if viper.GetString("app.mode") == "test" {
+			return newTestLimiterConfig()
+		}
+
+		storage := sqlite3.New(sqlite3.Config{
+			Database:        "./storage/log/fiber-limiter.sqlite3",
+			Table:           "fiber_storage",
+			Reset:           false,
+			GCInterval:      10 * time.Second,
+			MaxOpenConns:    100,
+			MaxIdleConns:    100,
+			ConnMaxLifetime: 1 * time.Second,
+		})
+
 		if viper.GetString("app.mode") == "production" {
 			return newProductionLimiterConfig(storage)
 		}
@@ -95,6 +99,16 @@ func newLimiterConfig(viper *viper.Viper) fiber.Handler {
 	}()
 
 	return limiter.New(limiterConfig)
+}
+
+func newTestLimiterConfig() limiter.Config {
+	// Ignoring storage for Test Environment
+	// When running tests, the current working directory might differ from your expected path.
+	return limiter.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return true
+		},
+	}
 }
 
 func newDevelopmentLimiterConfig(storage fiber.Storage) limiter.Config {
