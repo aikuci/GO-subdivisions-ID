@@ -54,18 +54,34 @@ func (uc *District) GetById(ctx context.Context, request model.GetDistrictByIDRe
 	return appusecase.Wrapper[entity.District](
 		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
 		func(ctx *appusecase.Context[model.GetDistrictByIDRequest[[]int]]) (*[]entity.District, int64, error) {
+			id := ctx.Request.ID
+			idCity := ctx.Request.IDCity
+			idProvince := ctx.Request.IDProvince
+
 			where := map[string]interface{}{}
-			if ctx.Request.ID != nil {
-				where["id"] = ctx.Request.ID
+			if id != nil {
+				where["id"] = id
 			}
-			if ctx.Request.IDCity != nil {
-				where["id_city"] = ctx.Request.IDCity
+			if idCity != nil {
+				where["id_city"] = idCity
 			}
-			if ctx.Request.IDProvince != nil {
-				where["id_province"] = ctx.Request.IDProvince
+			if idProvince != nil {
+				where["id_province"] = idProvince
 			}
 
 			collections, total, err := uc.Repository.FindAndCountBy(ctx.DB, where)
+
+			if len(collections) == 0 {
+				errorMessage := fmt.Sprintf("failed to get cities data with ID: %d", id)
+				if idCity != nil {
+					errorMessage += fmt.Sprintf(" and ID City: %d", idCity)
+				}
+				if idProvince != nil {
+					errorMessage += fmt.Sprintf(" and ID Province: %d", idProvince)
+				}
+				return nil, 0, apperror.RecordNotFound(errorMessage)
+			}
+
 			return &collections, total, err
 		},
 	)

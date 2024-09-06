@@ -57,18 +57,41 @@ func (uc *Village) GetById(ctx context.Context, request model.GetVillageByIDRequ
 	return appusecase.Wrapper[entity.Village](
 		appusecase.NewContext(ctx, uc.Log, uc.DB, request),
 		func(ctx *appusecase.Context[model.GetVillageByIDRequest[[]int]]) (*[]entity.Village, int64, error) {
+			id := ctx.Request.ID
+			idDistrict := ctx.Request.IDDistrict
+			idCity := ctx.Request.IDCity
+			idProvince := ctx.Request.IDProvince
+
 			where := map[string]interface{}{}
-			if ctx.Request.ID != nil {
-				where["id"] = ctx.Request.ID
+			if id != nil {
+				where["id"] = id
 			}
-			if ctx.Request.IDCity != nil {
-				where["id_city"] = ctx.Request.IDCity
+			if idDistrict != nil {
+				where["id_district"] = idDistrict
 			}
-			if ctx.Request.IDProvince != nil {
-				where["id_province"] = ctx.Request.IDProvince
+			if idCity != nil {
+				where["id_city"] = idCity
+			}
+			if idProvince != nil {
+				where["id_province"] = idProvince
 			}
 
 			collections, total, err := uc.Repository.FindAndCountBy(ctx.DB, where)
+
+			if len(collections) == 0 {
+				errorMessage := fmt.Sprintf("failed to get cities data with ID: %d", id)
+				if idDistrict != nil {
+					errorMessage += fmt.Sprintf(" and ID District: %d", idDistrict)
+				}
+				if idCity != nil {
+					errorMessage += fmt.Sprintf(" and ID City: %d", idCity)
+				}
+				if idProvince != nil {
+					errorMessage += fmt.Sprintf(" and ID Province: %d", idProvince)
+				}
+				return nil, 0, apperror.RecordNotFound(errorMessage)
+			}
+
 			return &collections, total, err
 		},
 	)
