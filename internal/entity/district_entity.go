@@ -3,7 +3,7 @@ package entity
 import "github.com/lib/pq"
 
 type District struct {
-	ID          int           `gorm:"primaryKey;autoIncrement:false"`
+	Base
 	CityID      int           `gorm:"column:id_city;primaryKey;autoIncrement:false"`
 	ProvinceID  int           `gorm:"column:id_province;primaryKey;autoIncrement:false"`
 	Code        string        `gorm:"column:code;size:18"`
