@@ -56,8 +56,18 @@ func Wrapper[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEnti
 func buildResponse[TRequest any, TEntity any, TModel any](ctx *Context[TRequest, TEntity, TModel]) error {
 	data := ctx.Data
 
+	// Handle case where collection is a single TEntity
+	if item, ok := data.collection.(*TEntity); ok {
+		return ctx.FiberCtx.JSON(
+			model.WebResponse[TModel]{
+				Data: *ctx.Mapper.ModelToResponse(item),
+			},
+		)
+	}
+
 	// Handle case where collection is a slice of TEntity
-	if collection, ok := data.collection.([]TEntity); ok {
+	collectionValue := reflect.ValueOf(data.collection).Elem()
+	if collection, ok := collectionValue.Interface().([]TEntity); ok {
 		responses := make([]TModel, len(collection))
 		for i, item := range collection {
 			responses[i] = *ctx.Mapper.ModelToResponse(&item)
@@ -69,15 +79,6 @@ func buildResponse[TRequest any, TEntity any, TModel any](ctx *Context[TRequest,
 				Meta: &model.Meta{
 					Page: generatePageMeta(ctx.Request, data.total),
 				},
-			},
-		)
-	}
-
-	// Handle case where collection is a single TEntity
-	if item, ok := data.collection.(*TEntity); ok {
-		return ctx.FiberCtx.JSON(
-			model.WebResponse[TModel]{
-				Data: *ctx.Mapper.ModelToResponse(item),
 			},
 		)
 	}
@@ -109,14 +110,17 @@ func parseRequest(ctx *fiber.Ctx, request any) error {
 func generatePageMeta(request any, total int64) *model.PageMetadata {
 	r := reflect.ValueOf(request)
 	for i := 0; i < r.NumField(); i++ {
-		if pagination, ok := r.Field(i).Interface().(model.PageRequest); ok {
-			if pagination.Page > 0 && pagination.Size > 0 {
-				return &model.PageMetadata{
-					Page:      pagination.Page,
-					Size:      pagination.Size,
-					TotalItem: total,
-					TotalPage: int64(math.Ceil(float64(total) / float64(pagination.Size))),
-				}
+		pagination, ok := r.Field(i).Interface().(model.PageRequest)
+		if !ok {
+			return nil
+		}
+
+		if pagination.Page > 0 && pagination.Size > 0 {
+			return &model.PageMetadata{
+				Page:      pagination.Page,
+				Size:      pagination.Size,
+				TotalItem: total,
+				TotalPage: int64(math.Ceil(float64(total) / float64(pagination.Size))),
 			}
 		}
 	}
