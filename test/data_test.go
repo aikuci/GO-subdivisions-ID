@@ -30,7 +30,12 @@ func ClearCities() {
 	}
 }
 
-func CreateProvinces(total int) {
+type TotalProvinceRelations struct {
+	totalCity     int
+	totalDistrict int
+}
+
+func CreateProvincesAndItsRelations(total int, totalRelations TotalProvinceRelations) {
 	for i := 1; i < total+1; i++ {
 		province := &entity.Province{
 			Base:        entity.Base{ID: i},
@@ -42,40 +47,43 @@ func CreateProvinces(total int) {
 		if err != nil {
 			log.Fatal("Failed create province data : %+v", zap.Error(err))
 		}
+
+		CreateCities(totalRelations.totalCity, i, totalRelations.totalDistrict)
 	}
 }
 
-func CreateCities(total int, provinceId int) {
+func CreateCities(total int, provinceId int, totalDistrict int) {
 	for i := 1; i < total+1; i++ {
-		id := provinceId*total + i
 		city := &entity.City{
-			Base:        entity.Base{ID: id},
+			Base:        entity.Base{ID: i},
 			ProvinceID:  provinceId,
-			Code:        strconv.Itoa(id),
-			Name:        "City " + strconv.Itoa(id),
-			PostalCodes: pq.Int64Array{int64(id * 1000)},
+			Code:        strconv.Itoa(i),
+			Name:        "City " + strconv.Itoa(i),
+			PostalCodes: pq.Int64Array{int64(provinceId*1000 + i*100)},
 		}
 		err := db.Create(city).Error
 		if err != nil {
 			log.Fatal("Failed create city data : %+v", zap.Error(err))
 		}
+
+		CreateDistricts(totalDistrict, i, provinceId)
 	}
 }
 
-func CreateProvincesAndCities(totalProvince int, totalCity int) {
-	for i := 1; i < totalProvince+1; i++ {
-		province := &entity.Province{
+func CreateDistricts(total int, cityId int, provinceId int) {
+	for i := 1; i < total+1; i++ {
+		district := &entity.District{
 			Base:        entity.Base{ID: i},
+			ProvinceID:  provinceId,
+			CityID:      cityId,
 			Code:        strconv.Itoa(i),
-			Name:        "Province " + strconv.Itoa(i),
-			PostalCodes: pq.Int64Array{int64(i * 1000)},
+			Name:        "District " + strconv.Itoa(i),
+			PostalCodes: pq.Int64Array{int64(provinceId*1000 + cityId*100 + i*10)},
 		}
-		err := db.Create(province).Error
+		err := db.Create(district).Error
 		if err != nil {
-			log.Fatal("Failed create province data : %+v", zap.Error(err))
+			log.Fatal("Failed create district data : %+v", zap.Error(err))
 		}
-
-		CreateCities(totalCity, i)
 	}
 }
 
