@@ -4,7 +4,7 @@ import "testing"
 
 func TestGetProvince(t *testing.T) {
 	ClearAll()
-	CreateProvinces(1)
+	CreateProvincesAndItsRelations(1, TotalProvinceRelations{})
 
 	tests := []TestStruct{
 		{
@@ -32,7 +32,7 @@ func TestGetProvince(t *testing.T) {
 
 func TestGetProvinces(t *testing.T) {
 	ClearAll()
-	CreateProvinces(20)
+	CreateProvincesAndItsRelations(20, TotalProvinceRelations{})
 
 	tests := []TestStruct{
 		{
@@ -46,14 +46,20 @@ func TestGetProvinces(t *testing.T) {
 	ExecTestRequest(t, tests)
 }
 
-func TestGetProvincesWithItsCities(t *testing.T) {
+func TestGetProvincesWithItsRelations(t *testing.T) {
 	ClearAll()
-	CreateProvincesAndCities(30, 1)
+	CreateProvincesAndItsRelations(30, TotalProvinceRelations{totalCity: 1, totalDistrict: 1})
 
 	tests := []TestStruct{
 		{
 			name:          "Successful request: Get provinces include its cities",
 			route:         "/v1/provinces?include=cities",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get provinces include its districts",
+			route:         "/v1/provinces?include=districts",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
@@ -65,8 +71,27 @@ func TestGetProvincesWithItsCities(t *testing.T) {
 		},
 
 		{
+			name:          "Successful request: Get provinces include its cities and districts",
+			route:         "/v1/provinces?include=cities,districts",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get province by valid ID include its cities and districts",
+			route:         "/v1/provinces/1?include=cities,districts",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+
+		{
 			name:          "Successful request: Get province by valid ID include its cities",
 			route:         "/v1/provinces/1?include=cities",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get province by valid ID include its districts",
+			route:         "/v1/provinces/1?include=districts",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},

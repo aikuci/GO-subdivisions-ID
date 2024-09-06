@@ -4,7 +4,7 @@ import "testing"
 
 func TestGetCity(t *testing.T) {
 	ClearAll()
-	CreateProvincesAndCities(1, 1)
+	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 1})
 
 	tests := []TestStruct{
 		{
@@ -32,7 +32,7 @@ func TestGetCity(t *testing.T) {
 
 func TestGetCities(t *testing.T) {
 	ClearAll()
-	CreateProvincesAndCities(1, 20)
+	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 20})
 
 	tests := []TestStruct{
 		{
@@ -46,14 +46,20 @@ func TestGetCities(t *testing.T) {
 	ExecTestRequest(t, tests)
 }
 
-func TestGetCitiesWithItsProvince(t *testing.T) {
+func TestGetCitiesWithItsRelations(t *testing.T) {
 	ClearAll()
-	CreateProvincesAndCities(1, 30)
+	CreateProvincesAndItsRelations(1, TotalProvinceRelations{totalCity: 30, totalDistrict: 1})
 
 	tests := []TestStruct{
 		{
 			name:          "Successful request: Get cities include its province",
 			route:         "/v1/provinces/1/cities?include=province",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get cities include its districts",
+			route:         "/v1/provinces/1/cities?include=districts",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
@@ -65,8 +71,27 @@ func TestGetCitiesWithItsProvince(t *testing.T) {
 		},
 
 		{
-			name:          "Successful request: Get province by valid ID include its province",
+			name:          "Successful request: Get cities include its province and districts",
+			route:         "/v1/provinces/1/cities?include=province,districts",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get city by valid ID include its province and districts",
+			route:         "/v1/provinces/1/cities/1?include=province,districts",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+
+		{
+			name:          "Successful request: Get city by valid ID include its province",
 			route:         "/v1/provinces/1/cities/1?include=province",
+			expectedError: false,
+			expectedCode:  StatusOK,
+		},
+		{
+			name:          "Successful request: Get city by valid ID include its districts",
+			route:         "/v1/provinces/1/cities/1?include=districts",
 			expectedError: false,
 			expectedCode:  StatusOK,
 		},
